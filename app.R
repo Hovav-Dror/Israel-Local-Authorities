@@ -12,8 +12,52 @@ load("MunicipalData.rda")
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(theme = shinytheme("cerulean"),
+                #tags$head(includeHTML(("google-analytics.html"))),
+                #tags$style(type="text/css", "body {padding-top: 70px;}"),
                 navbarPage("קובץ רשויות מקומיות", id = "NavBar", position = "fixed-top",
                            tabPanel("גרף",
+                                    fluidPage(lang = "he",
+                                              tags$style(
+                                                HTML("
+                                      .rtl {
+                                        direction: rtl;
+                                      }
+                                      .formatted-text {
+                                        color: blue;
+                                        font-size: 16px;
+                                      }
+                                      .emphasis {
+                                        font-weight: bold;
+                                        color: red;
+                                        font-size: 17px;
+                                      }
+                                      
+                                       .center-align {
+                                         display: flex;
+                                         flex-direction: column;
+                                         align-items: center;
+                                         justify-content: center;
+                                         text-align: center;
+                                       }
+                                    ")
+                                              ),
+                                    h4(),
+                                    p(), p(), p(), p(),
+                                    hr(),
+                                    HTML(" <br>"),
+                                    HTML("<div class='rtl'><span class='emphasis'>קובץ הרשויות המקומיות בישראל - 2021</div>"),
+                                    p(), p(),
+                                    HTML("<div class='rtl'><span class='formatted-text'>הלמ\"ס <a href = 'https://www.cbs.gov.il/he/mediarelease/Pages/2023/%D7%A7%D7%95%D7%91%D7%A5-%D7%94%D7%A8%D7%A9%D7%95%D7%99%D7%95%D7%AA-%D7%94%D7%9E%D7%A7%D7%95%D7%9E%D7%99%D7%95%D7%AA-%D7%91%D7%99%D7%A9%D7%A8%D7%90%D7%9C-2021.aspx'  target='_blank'>פרסמו את קובץ הרשויות המקומיות</a> ויש בו המון מידע.</div>"),
+                                    HTML("<div class='rtl'><span class='formatted-text'>הכנתי לעצמי משהו שמקל מעט על בחינת חלק מהנתונים שניתן למצוא שם. אז אשתף גם אתכם, אם אתם מחסידי הז'אנר.</div>"),
+                                    HTML("<div class='rtl'><span class='formatted-text'>מתאים לשימוש במחשב, לא מהנייד.</div>"),
+                                    HTML("<div class='rtl'><span class='formatted-text'>השרת ממוקם כאן: <a href = 'https://numbersguys.com'  target='_blank'>https://numbersguys.com</a> ותוכלו למצוא שם גם הנגשה של נתוני גמלנט, ועוד קצת."),
+                                    HTML("<div class='rtl'><span class='formatted-text'>hovav@hotmail.com - אם שימש אתכם, אשמח לשמוע</div>"),
+                                    p(),
+                                    hr()
+                           ),
+                          # ),
+                          # tabPanel("גרף",
+                                    
                                     fluidPage(
                                       hr(),
                                       p(),p(),p(),p(),p(),p(),p(),p(),
