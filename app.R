@@ -5,6 +5,8 @@ library(shinyWidgets)
 library(tidyverse)
 library(plotly)
 library(shinythemes)
+library(shinyBS)
+
 load("MunicipalData.rda")
 
 # UI ----------------------------------------------------------------------
@@ -36,7 +38,30 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                            selected = Pop_and_Physical2021 %>% pull(1),
                                                            options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
                                                            multiple = TRUE
-                                               ))
+                                               )),
+                                        column(2,
+                                               # sliderInput(inputId = "TownSizeSlider", label = "מספר תושבים בישוב", 
+                                               #             min = min(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), max = max(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), 
+                                               #             value = c(1000, 1000000), log = TRUE,
+                                               # )
+                                               sliderTextInput(
+                                                 inputId = "TownSizeSlider",
+                                                 label = "מספר תושבים בישוב", 
+                                                 choices = c(1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000),
+                                                 grid = TRUE,selected = c(1000, 1000000), 
+                                               )
+                                               ),
+                                        column(2),
+                                        column(2,
+                                               tipify(materialSwitch(
+                                                 inputId = "BarPlot",
+                                                 label = "מיפוי משתנה בודד", 
+                                                 value = FALSE,
+                                                 status = "primary"
+                                               ),
+                                               "גרף עמודות, משתמש בציר Y בלבד, לעומת גרף x-y"),
+                                               
+                                        ),
                                       ),
                                       hr(),
                                       fluidRow(
@@ -133,7 +158,8 @@ server <- function(session, input, output) {
   
     
     db <- Pop_and_Physical2021 %>% 
-      filter(`שם הרשות` %in% input$towns) #%>% 
+      filter(`שם הרשות` %in% input$towns) %>% 
+      filter(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`>= as.numeric(input$TownSizeSlider[1]), `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`<= as.numeric(input$TownSizeSlider[2]))
      # select(1, matches(paste(input$Topics, collapse = "|")))
     
     if (input$size1 != "none") {
@@ -157,6 +183,8 @@ server <- function(session, input, output) {
       db <- db %>% mutate(y0 = .data[[input$yaxis1]])
     }
     
+    
+    if (!input$BarPlot) { # do a scatterplot
     
     p <- db %>% 
       #filter(` שם_הרשות` %in% input$towns) %>% 
@@ -199,18 +227,70 @@ server <- function(session, input, output) {
         x = names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
         y = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
         color = NULL
-      )
+      ) 
+    
+    }  else { # do a bar plot
+     
+    p <- db %>% 
+      mutate(text =  paste0(`שם הרשות`  , "<br>", 
+                           # input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ","), "<br>", 
+                            input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ","), "<br>", 
+                            input$size1, " ", prettyNum(s0, scientific = F, big.mark = ","), "<br>", 
+                            input$color1, " ", prettyNum(c0, scientific = F, big.mark = ","))) %>% 
+      mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+      mutate(text = str_replace_all(text, "none ", "")) %>% 
+      mutate(text = str_replace_all(text, "NA", "")) %>% 
+      drop_na(y0) %>% 
+      ggplot(aes(x = y0, y = reorder(`שם הרשות`, y0), text = text) 
+      ) +
+      ggplot2::theme_bw() +
+      theme(
+        axis.title = element_text(size = 15, face = "bold"),
+        strip.background = element_rect(fill = "black"),
+        strip.text = element_text(color = "white", size = 18),
+        axis.text = element_text(face = "bold", size = 12)
+      ) +
+      geom_text(aes(label =  paste0( `שם הרשות`  ," ", prettyNum(y0, scientific = F, big.mark = ",")), x = y0 - 
+                                  0.1*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 3, color = "white")
+    
+    if (input$color1 == "none" & input$size1 == "none") {
+      p <- p + geom_col(fill = "darkblue", alpha = 0.5)
+    } else if (input$color1 == "none") {
+      p <- p + geom_col(aes(size = .data[[input$size1]]), fill = "darkblue", alpha = 0.5) 
+    } else if (input$size1 == "none") {
+      p <- p + geom_col(aes(fill = .data[[input$color1]])) + scale_fill_viridis_c()
+    } else {
+      p <- p + geom_col(aes(fill = .data[[input$color1]]#, size = .data[[input$size1]])
+                        )) + scale_fill_viridis_c() 
+    }
+    
+    p <- p +
+      labs(
+        #x = names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
+        y = NULL,
+        x = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
+        color = NULL, fill = NULL
+      ) 
+  }
+
     
 
     output$p1i <- renderPlotly({
-      ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
-        # layout(annotations = 
-        #          list(x = 0.02, y = 0.02, text = CaptionCPI, 
-        #               showarrow = F, xref='paper', yref='paper', 
-        #               xanchor='left', yanchor='auto', xshift=0, yshift=0,
-        #               font=list(size=15, color="black"))
-        #) %>% 
+      if (!input$BarPlot) {
+        ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
+        
+          # layout(annotations = 
+          #          list(x = 0.02, y = 0.02, text = CaptionCPI, 
+          #               showarrow = F, xref='paper', yref='paper', 
+          #               xanchor='left', yanchor='auto', xshift=0, yshift=0,
+          #               font=list(size=15, color="black"))
+          #) %>% 
+          config(displayModeBar = FALSE)
+      } else {
+     # ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
+        ggplotly(p, height = 600, width = 1000, tooltip = "text") %>% 
         config(displayModeBar = FALSE)
+      }
     })
     plotlyOutput("p1i")
     
@@ -237,7 +317,8 @@ server <- function(session, input, output) {
       pull(comment)
     if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$xaxis1, ": <b><br>", c1, "</b><br>") }
     if (input$xaxis1 != input$yaxis1) {
-      c1 <- Comments1r %>% mutate(Yeap = str_detect(input$yaxis1, character)) %>% filter(Yeap) %>% #slice(1) %>% 
+      
+      c1 <- Comments1r %>% mutate(Yeap = str_detect(input$yaxis1, str_trim(character))) %>% filter(Yeap) %>% #slice(1) %>% 
         pull(comment)
       if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$yaxis1, ": <b><br>", c1, "</b><br>") }
     }
