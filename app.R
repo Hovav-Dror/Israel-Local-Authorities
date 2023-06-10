@@ -15,8 +15,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 #tags$head(includeHTML(("google-analytics.html"))),
                 #tags$style(type="text/css", "body {padding-top: 70px;}"),
                 navbarPage("קובץ רשויות מקומיות", id = "NavBar", position = "fixed-top",
-                           tabPanel("גרף",
-                                    fluidPage(lang = "he",
+                           tabPanel("הקדמה",
+                                     fluidPage(lang = "he",
                                               tags$style(
                                                 HTML("
                                       .rtl {
@@ -31,7 +31,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         color: red;
                                         font-size: 17px;
                                       }
-                                      
+
                                        .center-align {
                                          display: flex;
                                          flex-direction: column;
@@ -50,13 +50,13 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     HTML("<div class='rtl'><span class='formatted-text'>הלמ\"ס <a href = 'https://www.cbs.gov.il/he/mediarelease/Pages/2023/%D7%A7%D7%95%D7%91%D7%A5-%D7%94%D7%A8%D7%A9%D7%95%D7%99%D7%95%D7%AA-%D7%94%D7%9E%D7%A7%D7%95%D7%9E%D7%99%D7%95%D7%AA-%D7%91%D7%99%D7%A9%D7%A8%D7%90%D7%9C-2021.aspx'  target='_blank'>פרסמו את קובץ הרשויות המקומיות</a> ויש בו המון מידע.</div>"),
                                     HTML("<div class='rtl'><span class='formatted-text'>הכנתי לעצמי משהו שמקל מעט על בחינת חלק מהנתונים שניתן למצוא שם. אז אשתף גם אתכם, אם אתם מחסידי הז'אנר.</div>"),
                                     HTML("<div class='rtl'><span class='formatted-text'>מתאים לשימוש במחשב, לא מהנייד.</div>"),
-                                    HTML("<div class='rtl'><span class='formatted-text'>השרת ממוקם כאן: <a href = 'https://numbersguys.com'  target='_blank'>https://numbersguys.com</a> ותוכלו למצוא שם גם הנגשה של נתוני גמלנט, ועוד קצת."),
+                                    HTML("<div class='rtl'><span class='formatted-text'>השרת ממוקם כאן: <a href = 'https://numbersguys.com'  target='_blank'>https://numbersguys.com</a> ותוכלו למצוא שם גם הנגשה של נתוני גמלנט, ועוד קצת.</div>"),
                                     HTML("<div class='rtl'><span class='formatted-text'>hovav@hotmail.com - אם שימש אתכם, אשמח לשמוע</div>"),
                                     p(),
                                     hr()
+                            ),
                            ),
-                          # ),
-                          # tabPanel("גרף",
+                           tabPanel("גרף",
                                     
                                     fluidPage(
                                       hr(),
@@ -110,10 +110,10 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       hr(),
                                       fluidRow(
                                         column(1),
-                                        column(2, pickerInput("xaxis1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("xaxis1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "בריאות: עודף משקל והשמנה, כיתה ז אחוזים בעיריות ומועצות מקומיות המונות 10,000 תושבים ויותר"  , options = pickerOptions(liveSearch = T))),
                                         column(1, checkboxInput(inputId = "PopAdjustX", label = "תקנון לאוכלוסיה", value = FALSE)),
                                         column(1),
-                                        column(2, pickerInput("yaxis1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "דמוגרפיה: צפיפות אוכלוסייה לקמ''ר ביישובים שמנו 5,000 תושבים ויותר"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("yaxis1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "בריאות: שיעור סרטן מכל הסוגים מתוקנן ל-100,000 תושבים, גברים בעיריות ומועצות מקומיות המונות 20,000 תושבים ויותר"  , options = pickerOptions(liveSearch = T))),
                                         column(1, checkboxInput(inputId = "PopAdjustY", label = "תקנון לאוכלוסיה", value = FALSE)),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
                                         column(1),
