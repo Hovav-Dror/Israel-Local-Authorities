@@ -229,6 +229,8 @@ server <- function(session, input, output) {
       db <- db %>% mutate(y0 = .data[[input$yaxis1]])
     }
     
+    db <- db %>% drop_na(y0)
+    
     
     if (!input$BarPlot) { # do a scatterplot
     
@@ -254,9 +256,9 @@ server <- function(session, input, output) {
         strip.background = element_rect(fill = "black"),
         strip.text = element_text(color = "white", size = 18),
         axis.text = element_text(face = "bold", size = 12)
-      ) +
-      geom_text(vjust = -1, aes(label =  `שם הרשות`  , y = y0 + 
-                                  0.02*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 2)
+      ) #+
+      #geom_text(vjust = -1, aes(label =  `שם הרשות`  , y = y0 + 
+      #                            0.02*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 2)
     
     if (input$color1 == "none" & input$size1 == "none") {
       p <- p + geom_point(color = "darkblue", alpha = 0.5)
@@ -324,18 +326,60 @@ server <- function(session, input, output) {
     output$p1i <- renderPlotly({
       if (!input$BarPlot) {
         ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
-        
-          # layout(annotations = 
-          #          list(x = 0.02, y = 0.02, text = CaptionCPI, 
-          #               showarrow = F, xref='paper', yref='paper', 
-          #               xanchor='left', yanchor='auto', xshift=0, yshift=0,
-          #               font=list(size=15, color="black"))
-          #) %>% 
+          add_annotations(
+            x = ~x0,  # X coordinates of the labels
+            y = ~y0,  # Y coordinates of the labels
+            text = ~ `שם הרשות` ,  # Text content of the labels
+            showarrow = FALSE,  # Hide arrow
+            xanchor = "right",  # Horizontal anchor point
+            yanchor = "bottom",  # Vertical anchor point
+            font = list(size = 12, color = "black"),  # Text font properties
+            xshift = 0,  # Horizontal shift (in pixels)
+            yshift = 0  # Vertical shift (in pixels)
+          ) %>% 
           config(displayModeBar = FALSE)
-      } else {
-     # ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
-        ggplotly(p, height = 600, width = 1000, tooltip = "text") %>% 
-        config(displayModeBar = FALSE)
+      } else { # BarPlot
+     
+        db2 <- db %>% select(x0, y0, s0, c0, 1) %>% 
+          mutate(text2 =  paste0(`שם הרשות`  , " ", prettyNum(y0, scientific = F, big.mark = ",")
+                                 # "<br>", 
+                                 # # input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ","), "<br>", 
+                                 # input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ","), "<br>", 
+                                 # input$size1, " ", prettyNum(s0, scientific = F, big.mark = ","), "<br>", 
+                                 # input$color1, " ", prettyNum(c0, scientific = F, big.mark = ","))
+          )) %>% 
+          mutate(text2 = str_replace_all(text2, "none <br>", "")) %>% 
+          mutate(text2 = str_replace_all(text2, "none ", "")) %>% 
+          mutate(text2 = str_replace_all(text2, "NA", "")) %>% 
+          mutate(text =  paste0(`שם הרשות`  , 
+                                "<br>", #prettyNum(y0, scientific = F, big.mark = ","),
+                                # # input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ","), "<br>", 
+                                input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ","), "<br>", 
+                                input$size1, " ", prettyNum(s0, scientific = F, big.mark = ","), "<br>", 
+                                input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",")
+          )) %>% 
+          mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+          mutate(text = str_replace_all(text, "none ", "")) %>% 
+          mutate(text = str_replace_all(text, "NA", "")) %>% 
+          mutate(text2 = str_replace_all(text2, "none <br>", "")) %>% 
+          mutate(text2 = str_replace_all(text2, "none ", "")) %>% 
+          mutate(text2 = str_replace_all(text2, "NA", "")) %>% 
+          drop_na(y0) %>% rename(text3 = text)
+        
+        db2 <- db2 %>% arrange(desc(y0)) %>% mutate(`שם הרשות` = fct_rev(fct_inorder(`שם הרשות`))) 
+        
+        if (input$color1 == "none") {
+          plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
+            layout(xaxis = list(title = list(text = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4), font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+            config(displayModeBar = FALSE)
+        } else {
+          plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}",marker = list(color = ~s0)) %>% 
+            #layout(xaxis = list(title = list(text = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4), font = list(weight = "bold", size = 15))), yaxis = list(title = '')) %>% 
+            layout(xaxis = list(title = list(text = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4), font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+            config(displayModeBar = FALSE)
+        }
+        
+       
       }
     })
     plotlyOutput("p1i")
