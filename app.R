@@ -359,30 +359,30 @@ server <- function(session, input, output) {
     }
     
     
-    c1 <- Comments1r %>% mutate(Yeap = str_detect(input$xaxis1, character)) %>% filter(Yeap) %>% #slice(1) %>% 
+    c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$xaxis1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
       pull(comment)
     if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$xaxis1, ": <b><br>", c1, "</b><br>") }
     if (input$xaxis1 != input$yaxis1) {
       
-      c1 <- Comments1r %>% mutate(Yeap = str_detect(input$yaxis1, str_trim(character))) %>% filter(Yeap) %>% #slice(1) %>% 
+      c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$yaxis1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
         pull(comment)
       if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$yaxis1, ": <b><br>", c1, "</b><br>") }
     }
     if (input$size1 != input$yaxis1 & input$size1 != input$xaxis1) {
-      c1 <- Comments1r %>% mutate(Yeap = str_detect(input$size1, character)) %>% filter(Yeap) %>% #slice(1) %>% 
+      c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$size1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
         pull(comment)
       if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$size1, ": <b><br>",  c1, "</b><br>") }
     }
     if (input$color1 != input$yaxis1 & input$color1 != input$xaxis1 & input$color1 != input$size1) {
-      c1 <- Comments1r %>% mutate(Yeap = str_detect(input$color1, character)) %>% filter(Yeap) %>% #slice(1) %>% 
+      c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$color1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
         pull(comment)
       if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$color1, ": <b><br>", c1, "</b><br>") }
     }
     #browser()
-    if (first(Comments1label) != "") {Comments1label <- paste0("הערות:", "<br>", Comments1label, collapse = "<br>")}
+    if (first(Comments1label) != "") {Comments1label <- paste0("הערות:", "<br>", paste0(Comments1label, collapse = "<br>"))}
     
-    Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustY, " (מתוקנן לאוכלוסיה)", ""),"</b><br>",
-                             "ציר X: <b>", input$xaxis1, ifelse(input$PopAdjustX, " (מתוקנן לאוכלוסיה)", ""), "</b><br>",
+    Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""),"</b><br>",
+                             "ציר X: <b>", input$xaxis1, ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""), "</b><br>",
                              ifelse(input$size1 != "none",  paste0("גודל: ",input$size1, "<br>"), ""),
                              ifelse(input$color1 != "none", paste0("צבע: ",input$color1, "<br>"), ""),
                              "<br><br><br>",
