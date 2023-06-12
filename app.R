@@ -112,10 +112,10 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       hr(),
                                       fluidRow(
                                         column(1),
-                                        column(2, pickerInput("xaxis1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "בריאות: עודף משקל והשמנה, כיתה ז אחוזים בעיריות ומועצות מקומיות המונות 10,000 תושבים ויותר"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("xaxis1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "שכר ורווחה: אחוז העצמאים המשתכרים עד מחצית השכר הממוצע"  , options = pickerOptions(liveSearch = T))),
                                         column(1, checkboxInput(inputId = "PopAdjustX", label = "תקנון לאוכלוסיה", value = FALSE)),
                                         column(1),
-                                        column(2, pickerInput("yaxis1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "בריאות: שיעור סרטן מכל הסוגים מתוקנן ל-100,000 תושבים, גברים בעיריות ומועצות מקומיות המונות 20,000 תושבים ויותר"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("yaxis1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
                                         column(1, checkboxInput(inputId = "PopAdjustY", label = "תקנון לאוכלוסיה", value = FALSE)),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
                                         column(1),
@@ -134,14 +134,38 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(7,
                                         div(
                                           #style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 000px; padding-top: 0px;",
-                                          
+                                          style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 100px; padding-top: 00px;",
                                           uiOutput("EDAxyPlot"),
                                         )),
-                                        column(5, uiOutput("Comments1"))
+                                        column(5, div(
+                                          style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 100px; padding-top: 00px;",
+                                          uiOutput("Comments1")))
                                         ),
                                       
                                       
-                                      p(),
+                                      p(),p(),p(),
+                                      hr(),
+                                      h4("מסננים נוספים"),
+                                      fluidRow(
+                                        column(1),
+                                        column(1, checkboxInput(inputId = "AddDiagLine", label = "הוספת קו שוויון", value = FALSE)),
+                                        column(2, sliderInput("Eshkol", "אשכול חברתי-כלכלי", min = 1, max = 10, value = c(1,10))),
+                                        column(2, sliderInput("Coalition", "אחוז הצבעה לקואליציה", min = 0, max = 100, value = c(0,100))),
+                                        column(2, sliderInput("Opposition", "אחוז הצבעה לאופוזיציה", min = 0, max = 100, value = c(0,100))),
+                                      ),
+                                      fluidRow(
+                                        column(2),
+                                        column(2, sliderInput("Religious", "אחוז הצבעה למפלגות דתיות", min = 0, max = 100, value = c(0,100))),
+                                        column(2, sliderInput("UltraReligious", "אחוז חרדים", min = 0, max = 100, value = c(0,100))),
+                                        column(2, sliderInput("Arabs", "אחוז ערבים", min = 0, max = 100, value = c(0,100))),
+                                      ),
+                                        # column(2, sliderInput("Opposition", "אחוז הצבעה לאופוזיציה", min = 0, max = 100, value = c(0,100))),
+                                        # column(2, pickerInput("size2", "Size", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"
+                                        #                       , options = pickerOptions(liveSearch = T))),
+                                        # column(2),
+                                        # column(2, pickerInput("color2", "Color", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "none" , options = pickerOptions(liveSearch = T) )),
+                                      #),
+                                      
                                       
                                     ) # fluidPage
                                     ) # tabPanel 1
@@ -210,7 +234,13 @@ server <- function(session, input, output) {
     
     db <- Pop_and_Physical2021 %>% 
       filter(`שם הרשות` %in% input$towns) %>% 
-      filter(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`>= as.numeric(input$TownSizeSlider[1]), `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`<= as.numeric(input$TownSizeSlider[2]))
+      filter(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`>= as.numeric(input$TownSizeSlider[1]), `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`<= as.numeric(input$TownSizeSlider[2])) %>% 
+      filter( `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` >= input$Eshkol[1],  `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` <= input$Eshkol[2]) %>% 
+      filter(`דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` >= input$Coalition[1], `דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` <= input$Coalition[2]) %>% 
+      filter(`דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` >= input$Opposition[1], `דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` <= input$Opposition[2]) %>% 
+      filter(`דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` >= input$Religious[1], `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` <= input$Religious[2]) %>% 
+      filter(`דמוגרפיה: אחוז חרדים` >= input$UltraReligious[1], `דמוגרפיה: אחוז חרדים` <= input$UltraReligious[2]) %>% 
+      filter(`דמוגרפיה: ערבים (אחוזים)` >= input$Arabs[1], `דמוגרפיה: ערבים (אחוזים)` <= input$Arabs[2])
      # select(1, matches(paste(input$Topics, collapse = "|")))
     
     if (input$size1 != "none") {
@@ -275,7 +305,7 @@ server <- function(session, input, output) {
       p <- p + geom_point(aes(color = .data[[input$color1]], size = .data[[input$size1]])) + scale_color_viridis_c() + scale_size_area()
     }
     
-    
+    if (input$AddDiagLine) {p <- p + geom_abline(linetype = 3)}
     
     p <- p +
       labs(
