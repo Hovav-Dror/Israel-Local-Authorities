@@ -333,7 +333,7 @@ server <- function(session, input, output) {
             showarrow = FALSE,  # Hide arrow
             xanchor = "right",  # Horizontal anchor point
             yanchor = "bottom",  # Vertical anchor point
-            font = list(size = 12, color = "black"),  # Text font properties
+            font = list(size = 8, color = "black", alpha = 0.8),  # Text font properties
             xshift = 0,  # Horizontal shift (in pixels)
             yshift = 0  # Vertical shift (in pixels)
           ) %>% 
