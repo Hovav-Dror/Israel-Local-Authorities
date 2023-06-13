@@ -58,7 +58,9 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     hr()
                             ),
                            ),
-                           tabPanel("גרף",
+
+# tabPanel גרף ------------------------------------------------------------
+                           tabPanel("2021",
                                     
                                     fluidPage(
                                       hr(),
@@ -66,49 +68,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       fluidRow(),
                                       fluidRow(),
                                       h4(" "),
-                                      hr(),
-                                      fluidRow(
-                                        column(1),
-                                        column(2,
-                                               pickerInput(inputId = "Topics", label = "סינון נושאים", 
-                                                           choices = names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
-                                                           #selected =names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
-                                                           selected = c("דמוגרפיה", "בריאות", "חינוך והשכלה", "מדד חברתי-כלכלי", "מתוך סקר הוצאות  משקי הבית" , "מתוך סקר כוח אדם", "שכר ורווחה", "תחבורה"),
-                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
-                                                           multiple = TRUE
-                                               )),
-                                        column(2),
-                                        column(2,
-                                               pickerInput(inputId = "towns", label = "סינון ישובים", 
-                                                           choices = Pop_and_Physical2021 %>% pull(1),
-                                                           selected = Pop_and_Physical2021 %>% pull(1),
-                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
-                                                           multiple = TRUE
-                                               )),
-                                        column(2,
-                                               # sliderInput(inputId = "TownSizeSlider", label = "מספר תושבים בישוב", 
-                                               #             min = min(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), max = max(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), 
-                                               #             value = c(1000, 1000000), log = TRUE,
-                                               # )
-                                               sliderTextInput(
-                                                 inputId = "TownSizeSlider",
-                                                 label = "מספר תושבים בישוב", 
-                                                 choices = c(1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000),
-                                                 grid = TRUE,selected = c(1000, 1000000), 
-                                               )
-                                               ),
-                                        column(2),
-                                        column(2,
-                                               tipify(materialSwitch(
-                                                 inputId = "BarPlot",
-                                                 label = "מיפוי משתנה בודד", 
-                                                 value = FALSE,
-                                                 status = "primary"
-                                               ),
-                                               "גרף עמודות, משתמש בציר Y בלבד, לעומת גרף x-y"),
-                                               
-                                        ),
-                                      ),
+                                    
+                                     
                                       hr(),
                                       fluidRow(
                                         column(1),
@@ -118,7 +79,16 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(2, pickerInput("yaxis1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
                                         column(1, checkboxInput(inputId = "PopAdjustY", label = "תקנון לאוכלוסיה", value = FALSE)),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
-                                        column(1),
+                                        column(2,
+                                               tipify(materialSwitch(
+                                                 inputId = "BarPlot",
+                                                 label = "מיפוי משתנה בודד", 
+                                                 value = FALSE,
+                                                 status = "primary"
+                                               ),
+                                               "בלבד Y גרף עמודות, המשתמש בציר"),
+                                               
+                                        ),
                                         
                                       ), # fluidRow
                                       fluidRow(
@@ -145,10 +115,62 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       
                                       p(),p(),p(),
                                       hr(),
-                                      h4("מסננים נוספים"),
+
+# מסננים ותוספות ----------------------------------------------------------
+
+                                      
+                                      h4("מסננים ותוספות"),
                                       fluidRow(
-                                        column(1),
+                                        column(2),
                                         column(1, checkboxInput(inputId = "AddDiagLine", label = "הוספת קו שוויון", value = FALSE)),
+                                        column(1, checkboxInput(inputId = "AddHorizontalLine", label = "הוספת קו אופקי", value = FALSE)),
+                                        column(1, numericInput("Horizontal0", "", value = 0, width = "50%")),
+                                        column(1, checkboxInput(inputId = "AddVertiaclLine", label = "הוספת קו אנכי", value = FALSE)),
+                                        column(1, numericInput("Vertical0", "", value = 0, width = "50%")),
+                                        column(2,
+                                               pickerInput(inputId = "HighlightTowns", label = "ישובים להבליט", 
+                                                           choices = Pop_and_Physical2021 %>% pull(1),
+                                                           selected = NULL,
+                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                           multiple = TRUE
+                                               )),
+                                      ),
+                                      fluidRow(
+                                        column(2),
+                                        column(2,
+                                               pickerInput(inputId = "Topics", label = "סינון נושאים", 
+                                                           choices = names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
+                                                           selected =names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
+                                                           #selected = c("דמוגרפיה", "בריאות", "חינוך והשכלה", "מדד חברתי-כלכלי", "מתוך סקר הוצאות  משקי הבית" , "מתוך סקר כוח אדם", "שכר ורווחה", "תחבורה"),
+                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                           multiple = TRUE
+                                               )),
+                                        #column(1),
+                                        column(2,
+                                               pickerInput(inputId = "towns", label = "סינון ישובים", 
+                                                           choices = Pop_and_Physical2021 %>% pull(1),
+                                                           selected = Pop_and_Physical2021 %>% pull(1),
+                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                           multiple = TRUE
+                                               )),
+                                        column(2,
+                                               # sliderInput(inputId = "TownSizeSlider", label = "מספר תושבים בישוב", 
+                                               #             min = min(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), max = max(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), 
+                                               #             value = c(1000, 1000000), log = TRUE,
+                                               # )
+                                               sliderTextInput(
+                                                 inputId = "TownSizeSlider",
+                                                 label = "מספר תושבים בישוב", 
+                                                 choices = c(1000, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000),
+                                                 grid = TRUE,selected = c(1000, 1000000), 
+                                               )
+                                        ),
+                                        column(2),
+                                        
+                                      ),
+                                      fluidRow(
+                                        column(2),
+                                       
                                         column(2, sliderInput("Eshkol", "אשכול חברתי-כלכלי", min = 1, max = 10, value = c(1,10))),
                                         column(2, sliderInput("Coalition", "אחוז הצבעה לקואליציה", min = 0, max = 100, value = c(0,100))),
                                         column(2, sliderInput("Opposition", "אחוז הצבעה לאופוזיציה", min = 0, max = 100, value = c(0,100))),
@@ -264,7 +286,7 @@ server <- function(session, input, output) {
       db <- db %>% mutate(y0 = .data[[input$yaxis1]])
     }
     
-    db <- db %>% drop_na(y0)
+    db <- db %>% drop_na(x0, y0)
     
     
     if (!input$BarPlot) { # do a scatterplot
@@ -295,6 +317,8 @@ server <- function(session, input, output) {
       #geom_text(vjust = -1, aes(label =  `שם הרשות`  , y = y0 + 
       #                            0.02*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 2)
     
+   
+    
     if (input$color1 == "none" & input$size1 == "none") {
       p <- p + geom_point(color = "darkblue", alpha = 0.5)
     } else if (input$color1 == "none") {
@@ -306,6 +330,21 @@ server <- function(session, input, output) {
     }
     
     if (input$AddDiagLine) {p <- p + geom_abline(linetype = 3)}
+    if (input$AddHorizontalLine) {p <- p + geom_hline(yintercept = input$Horizontal0, linetype = 3)}
+    if (input$AddVertiaclLine) {p <- p + geom_vline(xintercept = input$Vertical0, linetype = 3)}
+    
+    if (!is.null(input$HighlightTowns)) {
+      if (input$size1 == "none") {
+        p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns), 
+                            size = 1.2, color = "orange"
+        )
+      } else {
+        p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns) %>% 
+                              mutate(Size = 1.2 * .data[[input$size1]]), 
+                            aes(size = Size), color = "orange"
+        )
+      }
+    }
     
     p <- p +
       labs(
