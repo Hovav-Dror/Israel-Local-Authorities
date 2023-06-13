@@ -15,7 +15,7 @@ Pop_and_Physical2021 <- Pop_and_Physical2021 %>% select(-"כללי: שם ועד�
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 #tags$head(includeHTML(("google-analytics.html"))),
                 #tags$style(type="text/css", "body {padding-top: 70px;}"),
-                navbarPage("קובץ רשויות מקומיות", id = "NavBar", position = "fixed-top",
+                navbarPage("קובץ רשויות מקומיות", id = "NavBar", position = "fixed-top", selected = "2021",
                            tabPanel("הקדמה",
                                      fluidPage(lang = "he",
                                               tags$style(
@@ -413,6 +413,7 @@ server <- function(session, input, output) {
             xshift = 0,  # Horizontal shift (in pixels)
             yshift = 0  # Vertical shift (in pixels)
           ) %>% 
+          layout(margin = list(l = 150)) %>% 
           config(displayModeBar = FALSE)
       } else { # BarPlot
      
