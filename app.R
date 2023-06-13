@@ -128,7 +128,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(1, checkboxInput(inputId = "AddVertiaclLine", label = "הוספת קו אנכי", value = FALSE)),
                                         column(1, numericInput("Vertical0", "", value = 0, width = "50%")),
                                         column(2,
-                                               pickerInput(inputId = "HighlightTowns", label = "ישובים להבליט", 
+                                               pickerInput(inputId = "HighlightTowns", label = "ישובים להבליט בכתום", 
                                                            choices = Pop_and_Physical2021 %>% pull(1),
                                                            selected = NULL,
                                                            options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
@@ -445,9 +445,17 @@ server <- function(session, input, output) {
         db2 <- db2 %>% arrange(desc(y0)) %>% mutate(`שם הרשות` = fct_rev(fct_inorder(`שם הרשות`))) 
         
         if (input$color1 == "none") {
-          plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
-            layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
-            config(displayModeBar = FALSE)
+          
+          if (!is.null(input$HighlightTowns)) {
+            plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}",  marker = list(color = ifelse(db2$`שם הרשות` %in% input$HighlightTowns, "orange", "blue"))) %>% 
+              layout( xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+              config(displayModeBar = FALSE)
+          } else {
+            plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
+              layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+              config(displayModeBar = FALSE)
+          }
+          
         } else {
           plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}",marker = list(color = ~s0)) %>% 
             #layout(xaxis = list(title = list(text = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4), font = list(weight = "bold", size = 15))), yaxis = list(title = '')) %>% 
