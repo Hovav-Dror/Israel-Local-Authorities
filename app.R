@@ -88,6 +88,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                #   status = "primary"
                                                # ),
                                                # "בלבד Y גרף עמודות, המשתמש בציר"),
+                                               tipify(
                                                radioGroupButtons(
                                                  inputId = "BarPlot",
                                                  
@@ -99,7 +100,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                    yes = icon("ok",
                                                               lib = "glyphicon"))
                                                ),
-                                               
+                                               HTML("שתי האפשרויות הראשונות מתאימות להשוואה בין ערים<br>למשל לראות באיזה ערים יש אחוז אבטלה גבוה, כתלות באחוז השמנה<br><br>שתי האפשרויות האחרונות מתאימות להשוואה בין משתנים, ללא פרוט לעיר ספציפית<br>למשל מה התפלגות מספר המורים כתלות באשכול כלכלי-חברתי")),
                                                
                                         ),
                                         
@@ -532,29 +533,29 @@ server <- function(session, input, output) {
           
           if (!is.null(input$HighlightTowns)) {
             plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}",  marker = list(color = ifelse(db2$`שם הרשות` %in% input$HighlightTowns, "orange", "blue"))) %>% 
-              layout( xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+              layout( xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
               config(displayModeBar = FALSE)
           } else {
             plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
-              layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+              layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
               config(displayModeBar = FALSE)
           }
           
         } else {
           plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}",marker = list(color = ~s0)) %>% 
             #layout(xaxis = list(title = list(text = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4), font = list(weight = "bold", size = 15))), yaxis = list(title = '')) %>% 
-            layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+            layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
             config(displayModeBar = FALSE)
         }
         
         
       } else if (input$BarPlot == "Group") { # Group
         plot_ly(db3, x = ~y0, y = ~x0, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
-          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
           config(displayModeBar = FALSE)
-      } else if (input$BarPlot == "Boxplot") { # Group
+      } else if (input$BarPlot == "Boxplot") { # Boxplot
         plot_ly(db3, x = ~y0, y = ~x0, type = "box", orientation = "h") %>% 
-          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
           config(displayModeBar = FALSE)
       }
     })
