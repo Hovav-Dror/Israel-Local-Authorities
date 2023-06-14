@@ -479,7 +479,7 @@ server <- function(session, input, output) {
         # mutate(text2 = str_replace_all(text2, "NA", "")) %>% 
         drop_na(y0) %>% rename(text3 = text)
       
-      YLAB <- paste0("ממוצע ", YLAB, "<br>", "לפי קבוצות", XLAB)
+      YLAB <- paste0("התפלגות ", YLAB, "<br>", "לפי קבוצות", XLAB)
     }
     
     output$p1i <- renderPlotly({
