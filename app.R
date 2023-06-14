@@ -17,7 +17,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 #tags$style(type="text/css", "body {padding-top: 70px;}"),
                 navbarPage("קובץ רשויות מקומיות", id = "NavBar", position = "fixed-top", selected = "2021",
                            tabPanel("הקדמה",
-                                     fluidPage(lang = "he",
+                                    fluidPage(lang = "he",
                                               tags$style(
                                                 HTML("
                                       .rtl {
@@ -42,24 +42,24 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                        }
                                     ")
                                               ),
-                                    h4(),
-                                    p(), p(), p(), p(),
-                                    hr(),
-                                    HTML(" <br>"),
-                                    HTML("<div class='rtl'><span class='emphasis'>קובץ הרשויות המקומיות בישראל - 2021</div>"),
-                                    p(), p(),
-                                    HTML("<div class='rtl'><span class='formatted-text'>הלמ\"ס <a href = 'https://www.cbs.gov.il/he/mediarelease/Pages/2023/%D7%A7%D7%95%D7%91%D7%A5-%D7%94%D7%A8%D7%A9%D7%95%D7%99%D7%95%D7%AA-%D7%94%D7%9E%D7%A7%D7%95%D7%9E%D7%99%D7%95%D7%AA-%D7%91%D7%99%D7%A9%D7%A8%D7%90%D7%9C-2021.aspx'  target='_blank'>פרסמו את קובץ הרשויות המקומיות</a> ויש בו המון מידע.</div>"),
-                                    HTML("<div class='rtl'><span class='formatted-text'>הכנתי לעצמי משהו שמקל מעט על בחינת חלק מהנתונים שניתן למצוא שם. אז אשתף גם אתכם, אם אתם מחסידי הז'אנר.</div>"),
-                                    HTML("<div class='rtl'><span class='formatted-text'>(חוץ מזה פה ושם מוסיף נתונים מקבצי למס אחרים או מקורות נוספים, ואז מידע יופיע בצד בהערות)</div>"),
-                                    HTML("<div class='rtl'><span class='formatted-text'>מתאים לשימוש במחשב, לא מהנייד.</div>"),
-                                    HTML("<div class='rtl'><span class='formatted-text'>השרת ממוקם כאן: <a href = 'https://numbersguys.com'  target='_blank'>https://numbersguys.com</a> ותוכלו למצוא שם גם הנגשה של נתוני גמלנט, ועוד קצת.</div>"),
-                                    HTML("<div class='rtl'><span class='formatted-text'>hovav@hotmail.com - אם שימש אתכם, אשמח לשמוע</div>"),
-                                    p(),
-                                    hr()
-                            ),
+                                              h4(),
+                                              p(), p(), p(), p(),
+                                              hr(),
+                                              HTML(" <br>"),
+                                              HTML("<div class='rtl'><span class='emphasis'>קובץ הרשויות המקומיות בישראל - 2021</div>"),
+                                              p(), p(),
+                                              HTML("<div class='rtl'><span class='formatted-text'>הלמ\"ס <a href = 'https://www.cbs.gov.il/he/mediarelease/Pages/2023/%D7%A7%D7%95%D7%91%D7%A5-%D7%94%D7%A8%D7%A9%D7%95%D7%99%D7%95%D7%AA-%D7%94%D7%9E%D7%A7%D7%95%D7%9E%D7%99%D7%95%D7%AA-%D7%91%D7%99%D7%A9%D7%A8%D7%90%D7%9C-2021.aspx'  target='_blank'>פרסמו את קובץ הרשויות המקומיות</a> ויש בו המון מידע.</div>"),
+                                              HTML("<div class='rtl'><span class='formatted-text'>הכנתי לעצמי משהו שמקל מעט על בחינת חלק מהנתונים שניתן למצוא שם. אז אשתף גם אתכם, אם אתם מחסידי הז'אנר.</div>"),
+                                              HTML("<div class='rtl'><span class='formatted-text'>(חוץ מזה פה ושם מוסיף נתונים מקבצי למס אחרים או מקורות נוספים, ואז מידע יופיע בצד בהערות)</div>"),
+                                              HTML("<div class='rtl'><span class='formatted-text'>מתאים לשימוש במחשב, לא מהנייד.</div>"),
+                                              HTML("<div class='rtl'><span class='formatted-text'>השרת ממוקם כאן: <a href = 'https://numbersguys.com'  target='_blank'>https://numbersguys.com</a> ותוכלו למצוא שם גם הנגשה של נתוני גמלנט, ועוד קצת.</div>"),
+                                              HTML("<div class='rtl'><span class='formatted-text'>hovav@hotmail.com - אם שימש אתכם, אשמח לשמוע</div>"),
+                                              p(),
+                                              hr()
+                                    ),
                            ),
-
-# tabPanel גרף ------------------------------------------------------------
+                           
+                           # tabPanel גרף ------------------------------------------------------------
                            tabPanel("2021",
                                     
                                     fluidPage(
@@ -68,8 +68,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       fluidRow(),
                                       fluidRow(),
                                       h4(" "),
-                                    
-                                     
+                                      
+                                      
                                       hr(),
                                       fluidRow(
                                         column(1),
@@ -80,13 +80,25 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(1, checkboxInput(inputId = "PopAdjustY", label = "תקנון לאוכלוסיה", value = FALSE)),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
                                         column(2,
-                                               tipify(materialSwitch(
+                                               # tipify(
+                                               #   materialSwitch(
+                                               #   inputId = "BarPlot",
+                                               #   label = "מיפוי משתנה בודד",
+                                               #   value = FALSE,
+                                               #   status = "primary"
+                                               # ),
+                                               # "בלבד Y גרף עמודות, המשתמש בציר"),
+                                               radioGroupButtons(
                                                  inputId = "BarPlot",
-                                                 label = "מיפוי משתנה בודד", 
-                                                 value = FALSE,
-                                                 status = "primary"
+                                                 
+                                                 label = "סוג תרשים",
+                                                 choices = c("Scatter",
+                                                             "Bar", "Group", "Boxplot"),
+                                                 #justified = TRUE,
+                                                 checkIcon = list(
+                                                   yes = icon("ok",
+                                                              lib = "glyphicon"))
                                                ),
-                                               "בלבד Y גרף עמודות, המשתמש בציר"),
                                                
                                                
                                         ),
@@ -103,22 +115,22 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       #fluidRow(uiOutput("Comments1")),
                                       fluidRow(
                                         column(7,
-                                        div(
-                                          #style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 000px; padding-top: 0px;",
-                                          style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 100px; padding-top: 00px;",
-                                          uiOutput("EDAxyPlot"),
-                                        )),
+                                               div(
+                                                 #style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 000px; padding-top: 0px;",
+                                                 style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 100px; padding-top: 00px;",
+                                                 uiOutput("EDAxyPlot"),
+                                               )),
                                         column(5, div(
                                           style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 100px; padding-top: 00px;",
                                           uiOutput("Comments1")))
-                                        ),
+                                      ),
                                       
                                       
                                       p(),p(),p(),
                                       hr(),
-
-# מסננים ותוספות ----------------------------------------------------------
-
+                                      
+                                      # מסננים ותוספות ----------------------------------------------------------
+                                      
                                       
                                       h4("מסננים ותוספות"),
                                       fluidRow(
@@ -171,7 +183,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       ),
                                       fluidRow(
                                         column(2),
-                                       
+                                        
                                         column(2, sliderInput("Eshkol", "אשכול חברתי-כלכלי", min = 1, max = 10, value = c(1,10))),
                                         column(2, sliderInput("Coalition", "אחוז הצבעה לקואליציה", min = 0, max = 100, value = c(0,100))),
                                         column(2, sliderInput("Opposition", "אחוז הצבעה לאופוזיציה", min = 0, max = 100, value = c(0,100))),
@@ -182,34 +194,34 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(2, sliderInput("UltraReligious", "אחוז חרדים", min = 0, max = 100, value = c(0,100))),
                                         column(2, sliderInput("Arabs", "אחוז ערבים", min = 0, max = 100, value = c(0,100))),
                                       ),
-                                        # column(2, sliderInput("Opposition", "אחוז הצבעה לאופוזיציה", min = 0, max = 100, value = c(0,100))),
-                                        # column(2, pickerInput("size2", "Size", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"
-                                        #                       , options = pickerOptions(liveSearch = T))),
-                                        # column(2),
-                                        # column(2, pickerInput("color2", "Color", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "none" , options = pickerOptions(liveSearch = T) )),
+                                      # column(2, sliderInput("Opposition", "אחוז הצבעה לאופוזיציה", min = 0, max = 100, value = c(0,100))),
+                                      # column(2, pickerInput("size2", "Size", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"
+                                      #                       , options = pickerOptions(liveSearch = T))),
+                                      # column(2),
+                                      # column(2, pickerInput("color2", "Color", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "none" , options = pickerOptions(liveSearch = T) )),
                                       #),
                                       
                                       
                                     ) # fluidPage
-                                    ), # tabPanel 1
-
-# TabPanel Previous Years -------------------------------------------------
-# tabPanel("Previous Years",
-#          
-#          fluidPage(
-#            hr(),
-#            p(),p(),p(),p(),p(),p(),p(),p(),
-#            fluidRow(),
-#            fluidRow(),
-#            h4(" "),
-#            
-#            
-#            hr(),
-#            fluidRow(
-#            )
-#          )
-# ) # tabPanel Years
-                           ) # navbarPage
+                           ), # tabPanel 1
+                           
+                           # TabPanel Previous Years -------------------------------------------------
+                           # tabPanel("Previous Years",
+                           #          
+                           #          fluidPage(
+                           #            hr(),
+                           #            p(),p(),p(),p(),p(),p(),p(),p(),
+                           #            fluidRow(),
+                           #            fluidRow(),
+                           #            h4(" "),
+                           #            
+                           #            
+                           #            hr(),
+                           #            fluidRow(
+                           #            )
+                           #          )
+                           # ) # tabPanel Years
+                ) # navbarPage
 ) # ui
 
 
@@ -218,8 +230,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
 # SERVER ------------------------------------------------------------------
 server <- function(session, input, output) {
   
-
-# observeEvent info$Topics ------------------------------------------------
+  
+  # observeEvent info$Topics ------------------------------------------------
   observeEvent(input$Topics, {
     #browser()
     xSelected <- input$xaxis1
@@ -230,7 +242,7 @@ server <- function(session, input, output) {
     updatePickerInput(session, "xaxis1", 
                       choices = xNewOptions,
                       selected = xSelected
-                      )
+    )
     
     ySelected <- input$yaxis1
     #yNewOptions <- Pop_and_Physical2021 %>% select( matches(paste(input$Topics, collapse = "|"))) %>% select_if(is.numeric) %>% names()
@@ -239,7 +251,7 @@ server <- function(session, input, output) {
                       choices = xNewOptions,
                       selected = ySelected
     )
-
+    
     cSelected <- input$color1
     #xNewOptions <- Pop_and_Physical2021 %>% select( matches(paste(input$Topics, collapse = "|"))) %>% select_if(is.numeric) %>% names()
     if (!(cSelected %in% xNewOptions | cSelected == "none")) {cSelected <- xNewOptions[1]}
@@ -247,7 +259,7 @@ server <- function(session, input, output) {
                       choices = c("none", xNewOptions),
                       selected = cSelected
     )
-
+    
     sSelected <- input$size1
     #xNewOptions <- Pop_and_Physical2021 %>% select( matches(paste(input$Topics, collapse = "|"))) %>% select_if(is.numeric) %>% names()
     if (!(sSelected %in% xNewOptions | sSelected == "none")) {sSelected <- xNewOptions[1]}
@@ -256,9 +268,9 @@ server <- function(session, input, output) {
                       selected = sSelected
     )
   })
-
-
-# output$EDAxyPlot --------------------------------------------------------
+  
+  
+  # output$EDAxyPlot --------------------------------------------------------
   output$EDAxyPlot <-  renderUI({
     #browser()
     
@@ -281,7 +293,7 @@ server <- function(session, input, output) {
       filter(`דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` >= input$Religious[1], `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` <= input$Religious[2]) %>% 
       filter(`דמוגרפיה: אחוז חרדים` >= input$UltraReligious[1], `דמוגרפיה: אחוז חרדים` <= input$UltraReligious[2]) %>% 
       filter(`דמוגרפיה: ערבים (אחוזים)` >= input$Arabs[1], `דמוגרפיה: ערבים (אחוזים)` <= input$Arabs[2])
-     # select(1, matches(paste(input$Topics, collapse = "|")))
+    # select(1, matches(paste(input$Topics, collapse = "|")))
     
     if (input$size1 != "none") {
       db <- db %>% mutate(s0 = .data[[input$size1]])
@@ -307,118 +319,118 @@ server <- function(session, input, output) {
     db <- db %>% drop_na(x0, y0)
     
     
-    if (!input$BarPlot) { # do a scatterplot
-    
-    p <- db %>% 
-      #filter(` שם_הרשות` %in% input$towns) %>% 
-      #mutate(y0 = .data[[input$yaxis1]]) %>%  
-             #s0 = ifelse(input$size1 != "none", .data[[input$size1]], ""), c0 = ifelse(input$color1 != "none",.data[[input$color1]], 99999.88888)) %>% 
-      #select(1, x0, y0, s0, c0) %>% 
-      #mutate(across(c(x0, y0, s0, c0), ~ ifelse((is.numeric(.)) , prettyNum(.,  scientific = FALSE, big.mark = ","), .))) %>% 
-      mutate(text =  paste0(`שם הרשות`  , "<br>", 
-                            input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                            input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                            input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                            input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))) %>% 
-      mutate(text = str_replace_all(text, "none <br>", "")) %>% 
-      mutate(text = str_replace_all(text, "none ", "")) %>% 
-      mutate(text = str_replace_all(text, "NA", "")) %>% 
-      ggplot(aes(x = x0, y = y0, text = text) 
-              ) +
-      ggplot2::theme_bw() +
-      theme(
-        axis.title = element_text(size = 15, face = "bold"),
-        strip.background = element_rect(fill = "black"),
-        strip.text = element_text(color = "white", size = 18),
-        axis.text = element_text(face = "bold", size = 12)
-      ) #+
+    if (input$BarPlot == "Scatter") { # do a scatterplot
+      
+      p <- db %>% 
+        #filter(` שם_הרשות` %in% input$towns) %>% 
+        #mutate(y0 = .data[[input$yaxis1]]) %>%  
+        #s0 = ifelse(input$size1 != "none", .data[[input$size1]], ""), c0 = ifelse(input$color1 != "none",.data[[input$color1]], 99999.88888)) %>% 
+        #select(1, x0, y0, s0, c0) %>% 
+        #mutate(across(c(x0, y0, s0, c0), ~ ifelse((is.numeric(.)) , prettyNum(.,  scientific = FALSE, big.mark = ","), .))) %>% 
+        mutate(text =  paste0(`שם הרשות`  , "<br>", 
+                              input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))) %>% 
+        mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+        mutate(text = str_replace_all(text, "none ", "")) %>% 
+        mutate(text = str_replace_all(text, "NA", "")) %>% 
+        ggplot(aes(x = x0, y = y0, text = text) 
+        ) +
+        ggplot2::theme_bw() +
+        theme(
+          axis.title = element_text(size = 15, face = "bold"),
+          strip.background = element_rect(fill = "black"),
+          strip.text = element_text(color = "white", size = 18),
+          axis.text = element_text(face = "bold", size = 12)
+        ) #+
       #geom_text(vjust = -1, aes(label =  `שם הרשות`  , y = y0 + 
       #                            0.02*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 2)
-    
-   
-    
-    if (input$color1 == "none" & input$size1 == "none") {
-      p <- p + geom_point(color = "darkblue", alpha = 0.5)
-    } else if (input$color1 == "none") {
-      p <- p + geom_point(aes(size = .data[[input$size1]]),color = "darkblue", alpha = 0.5) + scale_size_area()
-    } else if (input$size1 == "none") {
-      p <- p + geom_point(aes(color = .data[[input$color1]])) + scale_color_viridis_c()
-    } else {
-      p <- p + geom_point(aes(color = .data[[input$color1]], size = .data[[input$size1]])) + scale_color_viridis_c() + scale_size_area()
-    }
-    
-    if (input$AddDiagLine) {p <- p + geom_abline(linetype = 3)}
-    if (input$AddHorizontalLine) {p <- p + geom_hline(yintercept = input$Horizontal0, linetype = 3)}
-    if (input$AddVertiaclLine) {p <- p + geom_vline(xintercept = input$Vertical0, linetype = 3)}
-    
-    if (!is.null(input$HighlightTowns)) {
-      if (input$size1 == "none") {
-        p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns), 
-                            size = 1.2, color = "orange"
-        )
+      
+      
+      
+      if (input$color1 == "none" & input$size1 == "none") {
+        p <- p + geom_point(color = "darkblue", alpha = 0.5)
+      } else if (input$color1 == "none") {
+        p <- p + geom_point(aes(size = .data[[input$size1]]),color = "darkblue", alpha = 0.5) + scale_size_area()
+      } else if (input$size1 == "none") {
+        p <- p + geom_point(aes(color = .data[[input$color1]])) + scale_color_viridis_c()
       } else {
-        p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns) %>% 
-                              mutate(Size = 1.2 * .data[[input$size1]]), 
-                            aes(size = Size), color = "orange"
-        )
+        p <- p + geom_point(aes(color = .data[[input$color1]], size = .data[[input$size1]])) + scale_color_viridis_c() + scale_size_area()
       }
+      
+      if (input$AddDiagLine) {p <- p + geom_abline(linetype = 3)}
+      if (input$AddHorizontalLine) {p <- p + geom_hline(yintercept = input$Horizontal0, linetype = 3)}
+      if (input$AddVertiaclLine) {p <- p + geom_vline(xintercept = input$Vertical0, linetype = 3)}
+      
+      if (!is.null(input$HighlightTowns)) {
+        if (input$size1 == "none") {
+          p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns), 
+                              size = 1.2, color = "orange"
+          )
+        } else {
+          p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns) %>% 
+                                mutate(Size = 1.2 * .data[[input$size1]]), 
+                              aes(size = Size), color = "orange"
+          )
+        }
+      }
+      
+      p <- p +
+        labs(
+          x = XLAB,
+          y = YLAB,
+          color = NULL
+        ) 
+      
+    }  else if (input$BarPlot == "Bar") { # do a bar plot
+      
+      p <- db %>% 
+        mutate(text =  paste0(`שם הרשות`  , "<br>", 
+                              # input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ","), "<br>", 
+                              input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))) %>% 
+        mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+        mutate(text = str_replace_all(text, "none ", "")) %>% 
+        mutate(text = str_replace_all(text, "NA", "")) %>% 
+        drop_na(y0) %>% 
+        ggplot(aes(x = y0, y = reorder(`שם הרשות`, y0), text = text) 
+        ) +
+        ggplot2::theme_bw() +
+        theme(
+          axis.title = element_text(size = 15, face = "bold"),
+          strip.background = element_rect(fill = "black"),
+          strip.text = element_text(color = "white", size = 18),
+          axis.text = element_text(face = "bold", size = 12)
+        ) +
+        geom_text(aes(label =  paste0( `שם הרשות`  ," ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4)), x = y0 - 
+                        0.1*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 3, color = "white")
+      
+      if (input$color1 == "none" & input$size1 == "none") {
+        p <- p + geom_col(fill = "darkblue", alpha = 0.5)
+      } else if (input$color1 == "none") {
+        p <- p + geom_col(aes(size = .data[[input$size1]]), fill = "darkblue", alpha = 0.5) 
+      } else if (input$size1 == "none") {
+        p <- p + geom_col(aes(fill = .data[[input$color1]])) + scale_fill_viridis_c()
+      } else {
+        p <- p + geom_col(aes(fill = .data[[input$color1]]#, size = .data[[input$size1]])
+        )) + scale_fill_viridis_c() 
+      }
+      
+      p <- p +
+        labs(
+          #x = names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
+          y = NULL,
+          x = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
+          color = NULL, fill = NULL
+        ) 
     }
     
-    p <- p +
-      labs(
-        x = XLAB,
-        y = YLAB,
-        color = NULL
-      ) 
     
-    }  else { # do a bar plot
-     
-    p <- db %>% 
-      mutate(text =  paste0(`שם הרשות`  , "<br>", 
-                           # input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ","), "<br>", 
-                            input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                            input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                            input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))) %>% 
-      mutate(text = str_replace_all(text, "none <br>", "")) %>% 
-      mutate(text = str_replace_all(text, "none ", "")) %>% 
-      mutate(text = str_replace_all(text, "NA", "")) %>% 
-      drop_na(y0) %>% 
-      ggplot(aes(x = y0, y = reorder(`שם הרשות`, y0), text = text) 
-      ) +
-      ggplot2::theme_bw() +
-      theme(
-        axis.title = element_text(size = 15, face = "bold"),
-        strip.background = element_rect(fill = "black"),
-        strip.text = element_text(color = "white", size = 18),
-        axis.text = element_text(face = "bold", size = 12)
-      ) +
-      geom_text(aes(label =  paste0( `שם הרשות`  ," ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4)), x = y0 - 
-                                  0.1*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 3, color = "white")
     
-    if (input$color1 == "none" & input$size1 == "none") {
-      p <- p + geom_col(fill = "darkblue", alpha = 0.5)
-    } else if (input$color1 == "none") {
-      p <- p + geom_col(aes(size = .data[[input$size1]]), fill = "darkblue", alpha = 0.5) 
-    } else if (input$size1 == "none") {
-      p <- p + geom_col(aes(fill = .data[[input$color1]])) + scale_fill_viridis_c()
-    } else {
-      p <- p + geom_col(aes(fill = .data[[input$color1]]#, size = .data[[input$size1]])
-                        )) + scale_fill_viridis_c() 
-    }
-    
-    p <- p +
-      labs(
-        #x = names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
-        y = NULL,
-        x = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
-        color = NULL, fill = NULL
-      ) 
-  }
-
-    
-
     output$p1i <- renderPlotly({
-      if (!input$BarPlot) {
+      if (input$BarPlot == "Scatter") {
         ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
           add_annotations(
             x = ~x0,  # X coordinates of the labels
@@ -433,8 +445,8 @@ server <- function(session, input, output) {
           ) %>% 
           layout(margin = list(l = 150)) %>% 
           config(displayModeBar = FALSE)
-      } else { # BarPlot
-     
+      } else if (input$BarPlot == "Bar") { # BarPlot
+        
         db2 <- db %>% select(x0, y0, s0, c0, 1) %>% 
           mutate(text2 =  paste0(`שם הרשות`  , " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4)
                                  # "<br>", 
@@ -482,17 +494,17 @@ server <- function(session, input, output) {
             config(displayModeBar = FALSE)
         }
         
-       
+        
       }
     })
     plotlyOutput("p1i")
     
   }) # EDAxyplot
   
-
-# output$Comments1 --------------------------------------------------------
+  
+  # output$Comments1 --------------------------------------------------------
   output$Comments1 <- renderUI({
-   
+    
     #Comments1 <- Comments1 %>% filter(character != "סה\"כ" , character != "\\.\\.")
     Comments1label = ""
     
@@ -534,7 +546,7 @@ server <- function(session, input, output) {
                              ifelse(input$color1 != "none", paste0("צבע: ",input$color1, "<br>"), ""),
                              "<br><br><br>",
                              Comments1label
-                             )
+    )
     
     div(
       HTML("<div dir='rtl'>", Comments1label,"</div>"),
