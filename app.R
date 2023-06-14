@@ -88,6 +88,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                ),
                                                "בלבד Y גרף עמודות, המשתמש בציר"),
                                                
+                                               
                                         ),
                                         
                                       ), # fluidRow
@@ -190,7 +191,24 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       
                                       
                                     ) # fluidPage
-                                    ) # tabPanel 1
+                                    ), # tabPanel 1
+
+# TabPanel Previous Years -------------------------------------------------
+# tabPanel("Previous Years",
+#          
+#          fluidPage(
+#            hr(),
+#            p(),p(),p(),p(),p(),p(),p(),p(),
+#            fluidRow(),
+#            fluidRow(),
+#            h4(" "),
+#            
+#            
+#            hr(),
+#            fluidRow(
+#            )
+#          )
+# ) # tabPanel Years
                            ) # navbarPage
 ) # ui
 
