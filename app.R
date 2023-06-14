@@ -94,7 +94,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                  label = "סוג תרשים",
                                                  choices = c("Scatter",
                                                              "Bar", "Group", "Boxplot"),
-                                                 #justified = TRUE,
+                                                 justified = TRUE,
                                                  checkIcon = list(
                                                    yes = icon("ok",
                                                               lib = "glyphicon"))
@@ -316,12 +316,13 @@ server <- function(session, input, output) {
       db <- db %>% mutate(y0 = .data[[input$yaxis1]])
     }
     
-    db <- db %>% drop_na(x0, y0)
+    db <- db %>% drop_na(y0)
     
     
     if (input$BarPlot == "Scatter") { # do a scatterplot
       
       p <- db %>% 
+        drop_na(x0) %>% 
         #filter(` שם_הרשות` %in% input$towns) %>% 
         #mutate(y0 = .data[[input$yaxis1]]) %>%  
         #s0 = ifelse(input$size1 != "none", .data[[input$size1]], ""), c0 = ifelse(input$color1 != "none",.data[[input$color1]], 99999.88888)) %>% 
@@ -425,9 +426,61 @@ server <- function(session, input, output) {
           x = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
           color = NULL, fill = NULL
         ) 
+    }  else if (input$BarPlot == "Group") { # do a bar plot 
+      
+      db3 <- db %>% 
+        mutate(x0 = case_when(
+          n_distinct(x0) < 20 ~ factor(x0),
+          TRUE ~ cut(x0, scales::pretty_breaks(10)(x0), include.lowest = TRUE, dig.lab = 12)
+        )) %>% 
+        group_by(x0) %>% 
+        summarise(y0 = stats::weighted.mean(y0, w = `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`), N = n(), Pop = sum(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T)) %>% 
+        mutate(text2 =  paste0(x0  , " ממוצע משוקלל: ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4))) %>% 
+        mutate(text2 = str_replace_all(text2, "none <br>", "")) %>% 
+        mutate(text2 = str_replace_all(text2, "none ", "")) %>% 
+        mutate(text2 = str_replace_all(text2, "NA", "")) %>% 
+        mutate(text =  paste0(x0,"<br>",
+                              " ממוצע משוקלל: ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              "ישובים: ", N, "<br>", 
+                              "אוכלוסיה: ", prettyNum(Pop, scientific = F, big.mark = ",", digits = 4), "<br>"
+        )) %>% 
+        mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+        mutate(text = str_replace_all(text, "none ", "")) %>% 
+        mutate(text = str_replace_all(text, "NA", "")) %>% 
+        mutate(text2 = str_replace_all(text2, "none <br>", "")) %>% 
+        mutate(text2 = str_replace_all(text2, "none ", "")) %>% 
+        mutate(text2 = str_replace_all(text2, "NA", "")) %>% 
+        drop_na(y0) %>% rename(text3 = text)
+      
+      YLAB <- paste0("ממוצע ", YLAB, "<br>", "לפי קבוצות", XLAB)
+    } else if (input$BarPlot == "Boxplot") { # do a BoxPlot plot 
+      
+      db3 <- db %>% 
+        mutate(x0 = case_when(
+          n_distinct(x0) < 20 ~ factor(x0),
+          TRUE ~ cut(x0, scales::pretty_breaks(10)(x0), include.lowest = TRUE, dig.lab = 12)
+        )) %>% 
+        group_by(x0) %>% 
+        mutate(N = n(), Pop = sum(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T)) %>% 
+        #mutate(text2 =  paste0(x0  , " ממוצע משוקלל: ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4))) %>% 
+        #mutate(text2 = str_replace_all(text2, "none <br>", "")) %>% 
+        #mutate(text2 = str_replace_all(text2, "none ", "")) %>% 
+        #mutate(text2 = str_replace_all(text2, "NA", "")) %>% 
+        mutate(text =  paste0(x0,"<br>",
+                              " ממוצע משוקלל: ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              "ישובים: ", N, "<br>", 
+                              "אוכלוסיה: ", prettyNum(Pop, scientific = F, big.mark = ",", digits = 4), "<br>"
+        )) %>% 
+        mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+        mutate(text = str_replace_all(text, "none ", "")) %>% 
+        mutate(text = str_replace_all(text, "NA", "")) %>% 
+        # mutate(text2 = str_replace_all(text2, "none <br>", "")) %>% 
+        # mutate(text2 = str_replace_all(text2, "none ", "")) %>% 
+        # mutate(text2 = str_replace_all(text2, "NA", "")) %>% 
+        drop_na(y0) %>% rename(text3 = text)
+      
+      YLAB <- paste0("ממוצע ", YLAB, "<br>", "לפי קבוצות", XLAB)
     }
-    
-    
     
     output$p1i <- renderPlotly({
       if (input$BarPlot == "Scatter") {
@@ -495,6 +548,14 @@ server <- function(session, input, output) {
         }
         
         
+      } else if (input$BarPlot == "Group") { # Group
+        plot_ly(db3, x = ~y0, y = ~x0, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
+          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+          config(displayModeBar = FALSE)
+      } else if (input$BarPlot == "Boxplot") { # Group
+        plot_ly(db3, x = ~y0, y = ~x0, type = "box", orientation = "h") %>% 
+          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = '')) %>% 
+          config(displayModeBar = FALSE)
       }
     })
     plotlyOutput("p1i")
@@ -537,7 +598,7 @@ server <- function(session, input, output) {
         pull(comment)
       if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$color1, ": <b><br>", c1, "</b><br>") }
     }
-    #browser()
+   
     if (first(Comments1label) != "") {Comments1label <- paste0("הערות:", "<br>", paste0(Comments1label, collapse = "<br>"))}
     
     Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""),"</b><br>",
