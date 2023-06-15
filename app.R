@@ -802,7 +802,7 @@ server <- function(session, input, output) {
       filter(any(name == "דמוגרפיה: אחוז הצבעה למפלגות דתיות לא חרדיות, בחירות לכנסת 25" & value >= input$ReligiousB[1] & value <= input$ReligiousB[2])) %>% 
       filter(any(name == "דמוגרפיה: אחוז חרדים" & value >= input$UltraReligiousB[1] & value <= input$UltraReligiousB[2])) %>% 
       filter(any(name == "דמוגרפיה: ערבים (אחוזים)" & value >= input$ArabsB[1] & value <= input$ArabsB[2])) %>% 
-      filter(str_detect(name, paste( input$xaxisB1, input$yaxisB1, "כ אוכלוסייה בסוף השנה", sep = "|"))) %>% 
+      filter(str_detect(str_replace_all(name, "\\(|\\)", ""), paste( str_replace_all(input$xaxisB1, "\\(|\\)", ""), str_replace_all(input$yaxisB1, "\\(|\\)", ""), "כ אוכלוסייה בסוף השנה", sep = "|"))) %>% 
       ungroup
       
     db <- db %>% pivot_wider(names_from = name, values_from = value)
