@@ -286,8 +286,9 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                    
                                                    label = "סוג תרשים",
                                                    choices = c(
-                                                     #"Scatter","Bar", 
+                                                     "Scatter","Bar", 
                                                      "Group", "Boxplot"),
+                                                   selected = "Bar",
                                                    justified = TRUE,
                                                    checkIcon = list(
                                                      yes = icon("ok",
@@ -860,9 +861,9 @@ server <- function(session, input, output) {
     XLAB = paste0(names3 %>% filter(N3 == input$xaxisB1) %>% pull(N4),
                   ifelse(input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז")& !str_detect(input$xaxisB1, "ל-1000"),
                          paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
-    #browser()
+    
     db <- Combined %>% 
-      filter(`שם הרשות` %in% input$towns) %>% 
+      filter(`שם הרשות` %in% input$townsB) %>% 
       group_by(`שם הרשות`) %>% 
       filter(any(name == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" & value >= input$TownSizeSliderB[1] & value <= input$TownSizeSliderB[2])) %>% 
       #filter(any(name == input$AdjustPopByB )) %>% 
@@ -872,7 +873,7 @@ server <- function(session, input, output) {
       filter(any(name == "דמוגרפיה: אחוז הצבעה למפלגות דתיות לא חרדיות, בחירות לכנסת 25" & value >= input$ReligiousB[1] & value <= input$ReligiousB[2])) %>% 
       filter(any(name == "דמוגרפיה: אחוז חרדים" & value >= input$UltraReligiousB[1] & value <= input$UltraReligiousB[2])) %>% 
       filter(any(name == "דמוגרפיה: ערבים (אחוזים)" & value >= input$ArabsB[1] & value <= input$ArabsB[2])) %>% 
-      filter(str_detect(str_replace_all(name, "\\(|\\)", ""), paste( input$AdjustPopByB, str_replace_all(input$xaxisB1, "\\(|\\)", ""), str_replace_all(input$yaxisB1, "\\(|\\)", ""), "כ אוכלוסייה בסוף השנה", sep = "|"))) %>% 
+      filter(str_detect(str_replace_all(name, "\\(|\\)", ""), paste( input$AdjustPopByB, str_replace_all(input$xaxisB1, "\\(|\\)", ""), str_replace_all(input$yaxisB1, "\\(|\\)", ""), str_replace_all(input$colorB1, "\\(|\\)", ""), str_replace_all(input$sizeB1, "\\(|\\)", ""), "כ אוכלוסייה בסוף השנה", sep = "|"))) %>% 
       ungroup
       
     db <- db %>% pivot_wider(names_from = name, values_from = value)
@@ -901,11 +902,188 @@ server <- function(session, input, output) {
       db <- db %>% mutate(y0 = .data[[input$yaxisB1]])
     }
      
+   
+    if (input$sizeB1 != "none") {
+      db <- db %>% mutate(s0 = .data[[input$sizeB1]])
+      if (input$sizeB1 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {db <- db %>% mutate(s0 = max(.data[[input$sizeB1]], na.rm = T), .by = `שם הרשות`)}
+    } else {db <- db %>% mutate(s0 = "")}
+    
+    if (input$colorB1 != "none") {
+      db <- db %>% mutate(c0 = .data[[input$colorB1]])
+    } else {db <- db %>% mutate(c0 = "")}
     # select(1, matches(paste(input$Topics, collapse = "|")))
+    
+    db <- db %>% drop_na(y0)
     
     output$p2i <- renderPlotly({
       
-      if (input$BarPlotB == "Group") { # Group
+      if (input$BarPlotB == "Scatter") { # Group
+        
+        db <- db %>% 
+          drop_na(x0) 
+        
+        UsingTowns <- db %>% select(townname = `שם הרשות`, contains("כ אוכלוסייה בסוף השנה"), Year) %>% filter(Year == 2021) %>% 
+          rename(Size = 2) %>% ungroup %>% distinct(townname, Size) %>% arrange(-Size) %>% slice(1:min(c(12, nrow(.)))) %>% pull(1)
+        
+        db <- db %>% filter(`שם הרשות` %in% UsingTowns) %>% group_by(`שם הרשות`) %>% arrange(Year) %>% mutate(Year = factor(Year))
+        
+        db <- db %>% mutate(c0 = Year)
+        
+        p <- db %>% mutate(text =  paste0(`שם הרשות`  , "<br>", 
+                              input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                              input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))) %>% 
+          mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+          mutate(text = str_replace_all(text, "none ", "")) %>% 
+          mutate(text = str_replace_all(text, "NA", "")) %>% 
+          ggplot(aes(x = x0, y = y0, text = text) 
+          ) +
+          ggplot2::theme_bw() +
+          theme(
+            axis.title = element_text(size = 15, face = "bold"),
+            strip.background = element_rect(fill = "black"),
+            strip.text = element_text(color = "white", size = 18),
+            axis.text = element_text(face = "bold", size = 12)
+          ) #+
+        #geom_text(vjust = -1, aes(label =  `שם הרשות`  , y = y0 + 
+        #                            0.02*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 2)
+        
+        
+        p <- p + geom_path(linetype = 3, aes(group = `שם הרשות`))
+        
+        if (input$color1 == "none" & input$size1 == "none") {
+          p <-  p + geom_point(aes(color = c0)) +scale_color_brewer()
+        } else if (input$color1 == "none") {
+          p <- p + geom_point(aes(size = s0, color = c0), alpha = 0.5) + scale_size_area()+scale_color_brewer()
+        } else if (input$size1 == "none") {
+          p <- p + geom_point(aes(color = c0)) +scale_color_brewer()
+        } else {
+          p <- p + geom_point(aes(color = c0, size = s0)) + scale_color_brewer() + scale_size_area()
+        }
+        
+        if (input$AddDiagLine) {p <- p + geom_abline(linetype = 3)}
+        if (input$AddTrendLine) {p <- p + geom_smooth(aes(x = x0, y = y0, text = NULL), linetype = 3, method = "lm", se = F, na.rm = T, color = "grey24")}
+        
+        if (input$AddHorizontalLine) {p <- p + geom_hline(yintercept = input$Horizontal0, linetype = 3)}
+        if (input$AddVertiaclLine) {p <- p + geom_vline(xintercept = input$Vertical0, linetype = 3)}
+        
+        if (!is.null(input$HighlightTowns)) {
+          if (input$size1 == "none") {
+            p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns), 
+                                size = 1.2, color = "orange"
+            )
+          } else {
+            p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns) %>% 
+                                  mutate(Size = 1.2 * s0), 
+                                aes(size = Size), color = "orange"
+            )
+          }
+        }
+        
+        p <- p +
+          labs(
+            x = XLAB,
+            y = YLAB,
+            color = NULL,
+            size = NULL
+          ) 
+        
+        
+        
+        ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
+          add_annotations(
+            x = ~x0,  # X coordinates of the labels
+            y = ~y0,  # Y coordinates of the labels
+            text = ~ ifelse(s0 > 250000, paste("<b>", `שם הרשות`, "</b>"), paste(`שם הרשות`)) ,  # Text content of the labels
+            showarrow = FALSE,  # Hide arrow
+            xanchor = "right",  # Horizontal anchor point
+            yanchor = "bottom",  # Vertical anchor point
+            font = list(size = 8, color = "black", alpha = 0.8),  # Text font properties
+            xshift = 0,  # Horizontal shift (in pixels)
+            yshift = 0  # Vertical shift (in pixels)
+          ) %>% 
+          layout(margin = list(l = 150)) %>% 
+          config(displayModeBar = FALSE)
+        
+      } else if (input$BarPlotB == "Bar") { # Bar
+        
+        UsingTowns <- db %>% select(townname = `שם הרשות`, contains("כ אוכלוסייה בסוף השנה"), Year) %>% filter(Year == 2021) %>% 
+          rename(Size = 2) %>% ungroup %>% distinct(townname, Size) %>% arrange(-Size) %>% slice(1:min(c(12, nrow(.)))) %>% pull(1)
+        
+        db <- db %>% filter(`שם הרשות` %in% UsingTowns) %>% group_by(`שם הרשות`) %>% arrange(Year) %>% mutate(Year = factor(Year))
+        
+        db <- db %>% mutate(c0 = Year)
+        
+        p <- db %>% mutate(text =  paste0(`שם הרשות`  , "<br>", 
+                                          Year, "<br>",
+                                          #input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                                          input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>"
+                                          #input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                                          #input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))
+                                          )) %>% 
+          mutate(text = str_replace_all(text, "none <br>", "")) %>% 
+          mutate(text = str_replace_all(text, "none ", "")) %>% 
+          mutate(text = str_replace_all(text, "NA", "")) %>% 
+          ggplot(aes(y = Year, x = y0, text = text, fill = c0) 
+          ) +
+          ggplot2::theme_bw() +
+          theme(
+            axis.title = element_text(size = 15, face = "bold"),
+            strip.background = element_rect(fill = "black"),
+            strip.text = element_text(color = "white", size = 18),
+            axis.text = element_text(face = "bold", size = 12)
+          ) #+
+        #geom_text(vjust = -1, aes(label =  `שם הרשות`  , y = y0 + 
+        #                            0.02*(max(y0, na.rm = T) - min(y0, na.rm = T))), size = 2)
+        
+        
+        p <- p + geom_col() + scale_fill_brewer()
+        
+        p <- p + facet_wrap(~`שם הרשות`)
+        
+        # 
+        # if (!is.null(input$HighlightTowns)) {
+        #   if (input$size1 == "none") {
+        #     p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns), 
+        #                         size = 1.2, color = "orange"
+        #     )
+        #   } else {
+        #     p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns) %>% 
+        #                           mutate(Size = 1.2 * s0), 
+        #                         aes(size = Size), color = "orange"
+        #     )
+        #   }
+        # }
+        
+        p <- p +
+          labs(
+            x = YLAB %>% str_replace_all("<br>", "\n"),
+            y = NULL,
+            fill = NULL,
+            size = NULL
+          ) 
+        
+        p <- p + guides(fill = guide_legend(reverse = TRUE)) +theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+        p <- p + geom_text(aes(x = 0.8*y0, label = paste0(Year, ": ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4))))
+        
+        
+        ggplotly(p, height = 600, width = 1000, tooltip = "text") %>% 
+          # add_annotations(
+          #   x = ~y0,  # X coordinates of the labels
+          #   y = ~Year,  # Y coordinates of the labels
+          #   text = ~ prettyNum(y0, scientific = F, big.mark = ",", digits = 4) ,  # Text content of the labels
+          #   showarrow = FALSE,  # Hide arrow
+          #   xanchor = "right",  # Horizontal anchor point
+          #   yanchor = "bottom",  # Vertical anchor point
+          #   font = list(size = 8, color = "black", alpha = 0.8),  # Text font properties
+          #   xshift = 0,  # Horizontal shift (in pixels)
+          #   yshift = 0  # Vertical shift (in pixels)
+          # ) %>%
+          # layout(margin = list(l = 150)) %>%
+          layout(legend = list(traceorder = "reversed", showlegend = TRUE), xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20, color = "white"))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+          config(displayModeBar = FALSE)
+      } else if (input$BarPlotB == "Group") { # Group
         
         db <- db %>% 
           mutate(x0 = case_when(
