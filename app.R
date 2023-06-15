@@ -850,7 +850,7 @@ server <- function(session, input, output) {
         #   layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
         #   config(displayModeBar = FALSE)
         plot_ly(db, x = ~y0, y = ~x0, color = ~Year, type = "bar", orientation = "h", colors = c("red", "blue")) %>% 
-          layout(boxmode = "group", xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+          layout(legend = list(traceorder = "reversed"), boxmode = "group", xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
           config(displayModeBar = FALSE)
       } else  if (input$BarPlotB == "Boxplot") { # Boxplot
         db <- db %>% 
@@ -881,7 +881,7 @@ server <- function(session, input, output) {
         
         suppressWarnings(
         plot_ly(db, x = ~y0, y = ~x0, color = ~Year, type = "box", orientation = "h", colors = c("red", "blue")) %>% 
-          layout(boxmode = "group", xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+          layout(legend = list(traceorder = "reversed"), boxmode = "group", xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
           config(displayModeBar = FALSE)
         )
       }
@@ -889,6 +889,60 @@ server <- function(session, input, output) {
     plotlyOutput("p2i")
     
   }) # EDAxyPlotB
+  
+  # output$Comments1B --------------------------------------------------------
+  output$Comments1B <- renderUI({
+    
+    #Comments1 <- Comments1 %>% filter(character != "סה\"כ" , character != "\\.\\.")
+    Comments1label = ""
+    
+    if (str_detect(input$xaxisB1, "סקר כוח אדם") | str_detect(input$yaxisB1, "סקר כוח אדם") | str_detect(input$sizeB1, "סקר כוח אדם") | str_detect(input$colorB1, "סקר כוח אדם")) {
+      Comments1label <- paste0(Comments1label, "<br>נתוני סקר כח אדם קיימים עבור ערים המונות 50,000 תושבים ויותר<br>")
+    }
+    
+    
+    if (str_detect(input$xaxisB1, "סקר הוצאות  משקי הבית") | str_detect(input$yaxisB1, "סקר הוצאות  משקי הבית") | str_detect(input$sizeB1, "סקר הוצאות  משקי הבית") | str_detect(input$color1, "סקר הוצאות  משקי הבית")) {
+      Comments1label <- paste0(Comments1label, "<br>נתוני סקר הוצאות משקי הבית קיימים עבור ערים המונות 50,000 תושבים ויותר<br>")
+    }
+    
+    
+    c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$xaxisB1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
+      pull(comment)
+    if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$xaxisB1, ": <b><br>", c1, "</b><br>") }
+    if (input$xaxisB1 != input$yaxisB1) {
+      
+      c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$yaxisB1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
+        pull(comment)
+      if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$yaxisB1, ": <b><br>", c1, "</b><br>") }
+    }
+    if (input$sizeB1 != input$yaxisB1 & input$sizeB1 != input$xaxisB1) {
+      c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$sizeB1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
+        pull(comment)
+      if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$sizeB1, ": <b><br>",  c1, "</b><br>") }
+    }
+    if (input$color1 != input$yaxisB1 & input$color1 != input$xaxisB1 & input$colorB1 != input$sizeB1) {
+      c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$colorB1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
+        pull(comment)
+      if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$colorB1, ": <b><br>", c1, "</b><br>") }
+    }
+    
+    if (first(Comments1label) != "") {Comments1label <- paste0("הערות:", "<br>", paste0(Comments1label, collapse = "<br>"))}
+    
+    Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""),"</b><br>",
+                             "ציר X: <b>", input$xaxis1, ifelse(input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז") & !str_detect(input$xaxisB1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""), "</b><br>",
+                             ifelse(input$sizeB1 != "none",  paste0("גודל: ",input$sizeB1, "<br>"), ""),
+                             ifelse(input$colorB1 != "none", paste0("צבע: ",input$colorB1, "<br>"), ""),
+                             "<br><br><br>",
+                             Comments1label
+    )
+    
+    div(
+      HTML("<div dir='rtl'>", Comments1label,"</div>"),
+      style = "text-align: right; margin: 000px;"
+    )
+    
+  })
+  
   
 } # server
 
