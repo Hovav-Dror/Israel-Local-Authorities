@@ -177,13 +177,6 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(1, numericInput("Horizontal0", "", value = 0, width = "50%")),
                                         column(1, checkboxInput(inputId = "AddVertiaclLine", label = "הוספת קו אנכי", value = FALSE)),
                                         column(1, numericInput("Vertical0", "", value = 0, width = "50%")),
-                                        column(2,
-                                               pickerInput(inputId = "HighlightTowns", label = "ישובים להבליט בכתום", 
-                                                           choices = Pop_and_Physical2021 %>% pull(1),
-                                                           selected = NULL,
-                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
-                                                           multiple = TRUE
-                                               )),
                                       ),
                                       fluidRow(
                                         column(2),
@@ -204,6 +197,16 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                            multiple = TRUE
                                                )),
                                         column(2,
+                                               pickerInput(inputId = "HighlightTowns", label = "ישובים להבליט בכתום", 
+                                                           choices = Pop_and_Physical2021 %>% pull(1),
+                                                           selected = NULL,
+                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                           multiple = TRUE
+                                               )),
+                                      ),
+                                      fluidRow(
+                                        column(2),
+                                        column(2,
                                                # sliderInput(inputId = "TownSizeSlider", label = "מספר תושבים בישוב", 
                                                #             min = min(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), max = max(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), 
                                                #             value = c(1000, 1000000), log = TRUE,
@@ -216,7 +219,13 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                )
                                         ),
                                         column(2),
-                                        
+                                        column(2,
+                                               pickerInput(inputId = "AdjustPopBy", label = "בתקנון לאוכלוסיה", 
+                                                           choices = Names1[str_detect(Names1, "ייה בסוף השנה")],
+                                                           selected = Names1[str_detect(Names1, "ייה בסוף השנה")][1],
+                                                           #options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                           multiple = FALSE
+                                               )),
                                       ),
                                       fluidRow(
                                         column(2),
@@ -325,13 +334,13 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(1, numericInput("Horizontal0B", "", value = 0, width = "50%")),
                                         column(1, checkboxInput(inputId = "AddVertiaclLineB", label = "הוספת קו אנכי", value = FALSE)),
                                         column(1, numericInput("Vertical0B", "", value = 0, width = "50%")),
-                                        column(2,
-                                               pickerInput(inputId = "HighlightTownsB", label = "ישובים להבליט בכתום", 
-                                                           choices = Pop_and_Physical2021 %>% pull(1),
-                                                           selected = NULL,
-                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
-                                                           multiple = TRUE
-                                               )),
+                                        # column(2,
+                                        #        pickerInput(inputId = "HighlightTownsB", label = "ישובים להבליט בכתום", 
+                                        #                    choices = Pop_and_Physical2021 %>% pull(1),
+                                        #                    selected = NULL,
+                                        #                    options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                        #                    multiple = TRUE
+                                        #        )),
                                       ),
                                       fluidRow(
                                         column(2),
@@ -352,6 +361,16 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                            multiple = TRUE
                                                )),
                                         column(2,
+                                               pickerInput(inputId = "HighlightTownsB", label = "ישובים להבליט בכתום",
+                                                           choices = Pop_and_Physical2021 %>% pull(1),
+                                                           selected = NULL,
+                                                           options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                           multiple = TRUE
+                                               )),
+                                      ),
+                                      fluidRow(
+                                        column(2),
+                                        column(2,
                                                # sliderInput(inputId = "TownSizeSlider", label = "מספר תושבים בישוב", 
                                                #             min = min(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), max = max(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), 
                                                #             value = c(1000, 1000000), log = TRUE,
@@ -364,7 +383,13 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                )
                                         ),
                                         column(2),
-                                        
+                                        column(2,
+                                               pickerInput(inputId = "AdjustPopByB", label = "בתקנון לאוכלוסיה", 
+                                                           choices = Names1[str_detect(Names1, "ייה בסוף השנה")],
+                                                           selected = Names1[str_detect(Names1, "ייה בסוף השנה")][1],
+                                                           #options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                           multiple = FALSE
+                                               )),
                                       ),
                                       fluidRow(
                                         column(2),
@@ -444,12 +469,22 @@ server <- function(session, input, output) {
     #Names <- names(Pop_and_Physical2021)
     #names(Pop_and_Physical2021)[c(1,which(str_detect(names(Pop_and_Physical2021), "מרחקים|סקר")))]
     
+    if (input$AdjustPopBy == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+      Metuknan = " (מתוקנן לאוכלוסיה)"
+    } else {
+      Metuknan = paste0(
+        " (מתוקנן לאוכלוסיית ",
+        Names1[str_detect(Names1, input$AdjustPopBy)] %>% str_extract("בני.*"),
+        ")"
+      )
+    }
+    
     YLAB = paste0(names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
                   ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"),
-                         "<br>(מתוקנן לאוכלוסיה)", "")) %>% str_replace("<br><br>", "<br>")
+                         paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
     XLAB = paste0(names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
                   ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז")& !str_detect(input$xaxis1, "ל-1000"),
-                         "<br>(מתוקנן לאוכלוסיה)", "")) %>% str_replace("<br><br>", "<br>")
+                         paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
     
     db <- Pop_and_Physical2021 %>% 
       filter(`שם הרשות` %in% input$towns) %>% 
@@ -471,14 +506,24 @@ server <- function(session, input, output) {
     } else {db <- db %>% mutate(c0 = "")}
     
     if (input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000")) {
-      db <- db %>% 
-        mutate(x0 = .data[[input$xaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
+      if (input$AdjustPopBy == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+        db <- db %>% 
+          mutate(x0 = .data[[input$xaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+      } else {
+        db <- db %>% 
+          mutate(x0 = .data[[input$xaxis1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy]]/100) * 1000) 
+      }
     } else {
       db <- db %>% mutate(x0 = .data[[input$xaxis1]])
     }
     if (input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000")) {
+      if (input$AdjustPopBy == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
       db <- db %>% 
-        mutate(y0 = .data[[input$yaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
+        mutate(y0 = .data[[input$yaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+      } else {
+        db <- db %>% 
+          mutate(y0 = .data[[input$yaxis1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy]]/100) * 1000) 
+      }
     } else {
       db <- db %>% mutate(y0 = .data[[input$yaxis1]])
     }
@@ -770,8 +815,18 @@ server <- function(session, input, output) {
    
     if (first(Comments1label) != "") {Comments1label <- paste0("הערות:", "<br>", paste0(Comments1label, collapse = "<br>"))}
     
-    Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""),"</b><br>",
-                             "ציר X: <b>", input$xaxis1, ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""), "</b><br>",
+    if (input$AdjustPopBy == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+      Metuknan = " (מתוקנן לאוכלוסיה)"
+    } else {
+      Metuknan = paste0(
+        " (מתוקנן לאוכלוסיית ",
+        Names1[str_detect(Names1, input$AdjustPopBy)] %>% str_extract("בני.*"),
+        ")"
+                        )
+    }
+    
+    Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"), Metuknan, ""),"</b><br>",
+                             "ציר X: <b>", input$xaxis1, ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000"), Metuknan, ""), "</b><br>",
                              ifelse(input$size1 != "none",  paste0("גודל: ",input$size1, "<br>"), ""),
                              ifelse(input$color1 != "none", paste0("צבע: ",input$color1, "<br>"), ""),
                              "<br><br><br>",
@@ -788,37 +843,60 @@ server <- function(session, input, output) {
   # output$EDAxyPlotB --------------------------------------------------------
   output$EDAxyPlotB <-  renderUI({
     
+    if (input$AdjustPopByB == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+      Metuknan = " (מתוקנן לאוכלוסיה)"
+    } else {
+      Metuknan = paste0(
+        " (מתוקנן לאוכלוסיית ",
+        Names1[str_detect(Names1, input$AdjustPopByB)] %>% str_extract("בני.*"),
+        ")"
+      )
+    }
+    
+    
     YLAB = paste0(names3 %>% filter(N3 == input$yaxisB1) %>% pull(N4),
                   ifelse(input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000"),
-                         "<br>(מתוקנן לאוכלוסיה)", "")) %>% str_replace("<br><br>", "<br>")
+                         paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
     XLAB = paste0(names3 %>% filter(N3 == input$xaxisB1) %>% pull(N4),
                   ifelse(input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז")& !str_detect(input$xaxisB1, "ל-1000"),
-                         "<br>(מתוקנן לאוכלוסיה)", "")) %>% str_replace("<br><br>", "<br>")
-    
+                         paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
+    #browser()
     db <- Combined %>% 
       filter(`שם הרשות` %in% input$towns) %>% 
       group_by(`שם הרשות`) %>% 
       filter(any(name == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" & value >= input$TownSizeSliderB[1] & value <= input$TownSizeSliderB[2])) %>% 
+      #filter(any(name == input$AdjustPopByB )) %>% 
       filter(any(name == "מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)" & value >= input$EshkolB[1] & value <= input$EshkolB[2])) %>% 
       filter(any(name == "דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25" & value >= input$CoalitionB[1] & value <= input$CoalitionB[2])) %>% 
       filter(any(name == "דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25" & value >= input$OppositionB[1] & value <= input$OppositionB[2])) %>% 
       filter(any(name == "דמוגרפיה: אחוז הצבעה למפלגות דתיות לא חרדיות, בחירות לכנסת 25" & value >= input$ReligiousB[1] & value <= input$ReligiousB[2])) %>% 
       filter(any(name == "דמוגרפיה: אחוז חרדים" & value >= input$UltraReligiousB[1] & value <= input$UltraReligiousB[2])) %>% 
       filter(any(name == "דמוגרפיה: ערבים (אחוזים)" & value >= input$ArabsB[1] & value <= input$ArabsB[2])) %>% 
-      filter(str_detect(str_replace_all(name, "\\(|\\)", ""), paste( str_replace_all(input$xaxisB1, "\\(|\\)", ""), str_replace_all(input$yaxisB1, "\\(|\\)", ""), "כ אוכלוסייה בסוף השנה", sep = "|"))) %>% 
+      filter(str_detect(str_replace_all(name, "\\(|\\)", ""), paste( input$AdjustPopByB, str_replace_all(input$xaxisB1, "\\(|\\)", ""), str_replace_all(input$yaxisB1, "\\(|\\)", ""), "כ אוכלוסייה בסוף השנה", sep = "|"))) %>% 
       ungroup
       
     db <- db %>% pivot_wider(names_from = name, values_from = value)
-      
+    
+    
       if (input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז") & !str_detect(input$xaxisB1, "ל-1000")) {
+        if (input$AdjustPopByB == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
         db <- db %>% 
           mutate(x0 = .data[[input$xaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
+        } else {
+          db <- db %>% 
+            mutate(x0 = .data[[input$xaxisB1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopByB]]/100) * 1000) 
+        }
       } else {
         db <- db %>% mutate(x0 = .data[[input$xaxisB1]])
       }
     if (input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000")) {
+      if (input$AdjustPopByB == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
       db <- db %>% 
         mutate(y0 = .data[[input$yaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
+      } else {
+        db <- db %>% 
+          mutate(y0 = .data[[input$yaxisB1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopByB]]/100) * 1000) 
+      }
     } else {
       db <- db %>% mutate(y0 = .data[[input$yaxisB1]])
     }
@@ -931,8 +1009,20 @@ server <- function(session, input, output) {
     
     if (first(Comments1label) != "") {Comments1label <- paste0("הערות:", "<br>", paste0(Comments1label, collapse = "<br>"))}
     
-    Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""),"</b><br>",
-                             "ציר X: <b>", input$xaxis1, ifelse(input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז") & !str_detect(input$xaxisB1, "ל-1000"), " (מתוקנן לאוכלוסיה)", ""), "</b><br>",
+    if (input$AdjustPopByB == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+      Metuknan = " (מתוקנן לאוכלוסיה)"
+    } else {
+      Metuknan = paste0(
+        " (מתוקנן לאוכלוסיית ",
+        Names1[str_detect(Names1, input$AdjustPopByB)] %>% str_extract("בני.*"),
+        ")"
+      )
+    }
+    
+    
+    
+    Comments1label <- paste0("ציר Y: <b>", input$yaxisB1, ifelse(input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000"), Metuknan, ""),"</b><br>",
+                             "ציר X: <b>", input$xaxisB1, ifelse(input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז") & !str_detect(input$xaxisB1, "ל-1000"), Metuknan, ""), "</b><br>",
                              ifelse(input$sizeB1 != "none",  paste0("גודל: ",input$sizeB1, "<br>"), ""),
                              ifelse(input$colorB1 != "none", paste0("צבע: ",input$colorB1, "<br>"), ""),
                              "<br><br><br>",
