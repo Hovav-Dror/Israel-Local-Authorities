@@ -109,10 +109,10 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       fluidRow(
                                         column(1),
                                         column(2, pickerInput("xaxis1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "שכר ורווחה: אחוז העצמאים המשתכרים עד מחצית השכר הממוצע"  , options = pickerOptions(liveSearch = T))),
-                                        column(1, checkboxInput(inputId = "PopAdjustX", label = "תקנון לאוכלוסיה", value = FALSE)),
+                                        column(1, tipify(checkboxInput(inputId = "PopAdjustX", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         column(1),
                                         column(2, pickerInput("yaxis1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
-                                        column(1, checkboxInput(inputId = "PopAdjustY", label = "תקנון לאוכלוסיה", value = FALSE)),
+                                        column(1, tipify(checkboxInput(inputId = "PopAdjustY", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
                                         column(2,
                                                # tipify(
@@ -256,10 +256,10 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       fluidRow(
                                         column(1),
                                         column(2, pickerInput("xaxisB1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "שכר ורווחה: אחוז העצמאים המשתכרים עד מחצית השכר הממוצע"  , options = pickerOptions(liveSearch = T))),
-                                        column(1, checkboxInput(inputId = "PopAdjustBX", label = "תקנון לאוכלוסיה", value = FALSE)),
+                                        column(1, tipify(checkboxInput(inputId = "PopAdjustBX", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         column(1),
                                         column(2, pickerInput("yaxisB1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
-                                        column(1, checkboxInput(inputId = "PopAdjustBY", label = "תקנון לאוכלוסיה", value = FALSE)),
+                                        column(1, tipify(checkboxInput(inputId = "PopAdjustBY", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
                                         column(2,
                                                # tipify(
@@ -471,13 +471,13 @@ server <- function(session, input, output) {
     
     if (input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000")) {
       db <- db %>% 
-        mutate(x0 = .data[[input$xaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]])
+        mutate(x0 = .data[[input$xaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
     } else {
       db <- db %>% mutate(x0 = .data[[input$xaxis1]])
     }
     if (input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000")) {
       db <- db %>% 
-        mutate(y0 = .data[[input$yaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]])
+        mutate(y0 = .data[[input$yaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
     } else {
       db <- db %>% mutate(y0 = .data[[input$yaxis1]])
     }
@@ -809,13 +809,13 @@ server <- function(session, input, output) {
       
       if (input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז") & !str_detect(input$xaxisB1, "ל-1000")) {
         db <- db %>% 
-          mutate(x0 = .data[[input$xaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]])
+          mutate(x0 = .data[[input$xaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
       } else {
         db <- db %>% mutate(x0 = .data[[input$xaxisB1]])
       }
     if (input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000")) {
       db <- db %>% 
-        mutate(y0 = .data[[input$yaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]])
+        mutate(y0 = .data[[input$yaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
     } else {
       db <- db %>% mutate(y0 = .data[[input$yaxisB1]])
     }
