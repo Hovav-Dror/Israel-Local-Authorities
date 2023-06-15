@@ -172,6 +172,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       fluidRow(
                                         column(2),
                                         column(1, checkboxInput(inputId = "AddDiagLine", label = "הוספת קו שוויון", value = FALSE)),
+                                        column(1, checkboxInput(inputId = "AddTrendLine", label = "הוספת קו מגמה", value = FALSE)),
                                         column(1, checkboxInput(inputId = "AddHorizontalLine", label = "הוספת קו אופקי", value = FALSE)),
                                         column(1, numericInput("Horizontal0", "", value = 0, width = "50%")),
                                         column(1, checkboxInput(inputId = "AddVertiaclLine", label = "הוספת קו אנכי", value = FALSE)),
@@ -527,6 +528,8 @@ server <- function(session, input, output) {
       }
       
       if (input$AddDiagLine) {p <- p + geom_abline(linetype = 3)}
+      if (input$AddTrendLine) {p <- p + geom_smooth(aes(x = x0, y = y0, text = NULL), linetype = 3, method = "lm", se = F, na.rm = T, color = "grey24")}
+      
       if (input$AddHorizontalLine) {p <- p + geom_hline(yintercept = input$Horizontal0, linetype = 3)}
       if (input$AddVertiaclLine) {p <- p + geom_vline(xintercept = input$Vertical0, linetype = 3)}
       
