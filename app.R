@@ -331,6 +331,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       fluidRow(
                                         column(2),
                                         column(1, checkboxInput(inputId = "AddDiagLineB", label = "הוספת קו שוויון", value = FALSE)),
+                                        column(1, checkboxInput(inputId = "AddTrendLineB", label = "הוספת קו מגמה", value = FALSE)),
                                         column(1, checkboxInput(inputId = "AddHorizontalLineB", label = "הוספת קו אופקי", value = FALSE)),
                                         column(1, numericInput("Horizontal0B", "", value = 0, width = "50%")),
                                         column(1, checkboxInput(inputId = "AddVertiaclLineB", label = "הוספת קו אנכי", value = FALSE)),
@@ -952,29 +953,29 @@ server <- function(session, input, output) {
         
         p <- p + geom_path(linetype = 3, aes(group = `שם הרשות`))
         
-        if (input$color1 == "none" & input$size1 == "none") {
+        if (input$colorB1 == "none" & input$sizeB1 == "none") {
           p <-  p + geom_point(aes(color = c0)) +scale_color_brewer()
-        } else if (input$color1 == "none") {
+        } else if (input$colorB1 == "none") {
           p <- p + geom_point(aes(size = s0, color = c0), alpha = 0.5) + scale_size_area()+scale_color_brewer()
-        } else if (input$size1 == "none") {
+        } else if (input$sizeB1 == "none") {
           p <- p + geom_point(aes(color = c0)) +scale_color_brewer()
         } else {
           p <- p + geom_point(aes(color = c0, size = s0)) + scale_color_brewer() + scale_size_area()
         }
         
-        if (input$AddDiagLine) {p <- p + geom_abline(linetype = 3)}
-        if (input$AddTrendLine) {p <- p + geom_smooth(aes(x = x0, y = y0, text = NULL), linetype = 3, method = "lm", se = F, na.rm = T, color = "grey24")}
+        if (input$AddDiagLineB) {p <- p + geom_abline(linetype = 3)}
+        if (input$AddTrendLineB) {p <- p + geom_smooth(aes(x = x0, y = y0, text = NULL), linetype = 3, method = "lm", se = F, na.rm = T, color = "grey24")}
         
-        if (input$AddHorizontalLine) {p <- p + geom_hline(yintercept = input$Horizontal0, linetype = 3)}
-        if (input$AddVertiaclLine) {p <- p + geom_vline(xintercept = input$Vertical0, linetype = 3)}
+        if (input$AddHorizontalLineB) {p <- p + geom_hline(yintercept = input$Horizontal0B, linetype = 3)}
+        if (input$AddVertiaclLineB) {p <- p + geom_vline(xintercept = input$Vertical0B, linetype = 3)}
         
-        if (!is.null(input$HighlightTowns)) {
-          if (input$size1 == "none") {
-            p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns), 
+        if (!is.null(input$HighlightTownsB)) {
+          if (input$sizeB1 == "none") {
+            p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTownsB), 
                                 size = 1.2, color = "orange"
             )
           } else {
-            p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTowns) %>% 
+            p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTownsB) %>% 
                                   mutate(Size = 1.2 * s0), 
                                 aes(size = Size), color = "orange"
             )
@@ -1003,7 +1004,7 @@ server <- function(session, input, output) {
             xshift = 0,  # Horizontal shift (in pixels)
             yshift = 0  # Vertical shift (in pixels)
           ) %>% 
-          layout(margin = list(l = 150)) %>% 
+          layout(legend = list(traceorder = "reversed", showlegend = TRUE), margin = list(l = 150)) %>% 
           config(displayModeBar = FALSE)
         
       } else if (input$BarPlotB == "Bar") { # Bar
