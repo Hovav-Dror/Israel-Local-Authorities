@@ -153,7 +153,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(7,
                                                div(
                                                  #style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 000px; padding-top: 0px;",
-                                                 style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 100px; padding-top: 00px;",
+                                                 style = "display: flex; align-items: center; justify-content: center; min-height: 1000px; padding-bottom: 100px; padding-top: 00px;margin-top: -250px;",
                                                  uiOutput("EDAxyPlot"),
                                                )),
                                         column(5, div(
@@ -312,7 +312,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(7,
                                                div(
                                                  #style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 000px; padding-top: 0px;",
-                                                 style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 100px; padding-top: 00px;",
+                                                 style = "display: flex; align-items: center; justify-content: center; min-height: 1000px; padding-bottom: 100px; padding-top: 00px;margin-top: -250px;",
                                                  uiOutput("EDAxyPlotB"),
                                                )),
                                         column(5, div(
@@ -596,9 +596,12 @@ server <- function(session, input, output) {
       p <- p +
         labs(
           x = XLAB,
-          y = YLAB,
+          #y = YLAB,
+          y = NULL,
+          title = YLAB,
           color = NULL
-        ) 
+        ) +
+        theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
       
     }  else if (input$BarPlot == "Bar") { # do a bar plot
       
@@ -700,7 +703,7 @@ server <- function(session, input, output) {
     
     output$p1i <- renderPlotly({
       if (input$BarPlot == "Scatter") {
-        ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
+        ggplotly(p, height = 800, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
           add_annotations(
             x = ~x0,  # X coordinates of the labels
             y = ~y0,  # Y coordinates of the labels
@@ -712,7 +715,7 @@ server <- function(session, input, output) {
             xshift = 0,  # Horizontal shift (in pixels)
             yshift = 0  # Vertical shift (in pixels)
           ) %>% 
-          layout(margin = list(l = 150)) %>% 
+          layout(margin = list(t = 150)) %>% 
           config(displayModeBar = FALSE)
       } else if (input$BarPlot == "Bar") { # BarPlot
         
@@ -748,29 +751,29 @@ server <- function(session, input, output) {
           
           if (!is.null(input$HighlightTowns)) {
             plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}",  marker = list(color = ifelse(db2$`שם הרשות` %in% input$HighlightTowns, "orange", "blue"))) %>% 
-              layout( xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+              layout( xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 800) %>% 
               config(displayModeBar = FALSE)
           } else {
             plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
-              layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+              layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 800) %>% 
               config(displayModeBar = FALSE)
           }
           
         } else {
           plot_ly(db2, x = ~y0, y = ~`שם הרשות`, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}",marker = list(color = ~s0)) %>% 
             #layout(xaxis = list(title = list(text = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4), font = list(weight = "bold", size = 15))), yaxis = list(title = '')) %>% 
-            layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+            layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 800) %>% 
             config(displayModeBar = FALSE)
         }
         
         
       } else if (input$BarPlot == "Group") { # Group
         plot_ly(db3, x = ~y0, y = ~x0, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
-          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 800) %>% 
           config(displayModeBar = FALSE)
       } else if (input$BarPlot == "Boxplot") { # Boxplot
         plot_ly(db3, x = ~y0, y = ~x0, type = "box", orientation = "h") %>% 
-          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+          layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 800) %>% 
           config(displayModeBar = FALSE)
       }
     })
@@ -970,7 +973,7 @@ server <- function(session, input, output) {
         if (input$AddVertiaclLineB) {p <- p + geom_vline(xintercept = input$Vertical0B, linetype = 3)}
         
         if (!is.null(input$HighlightTownsB)) {
-          if (input$sizeB1 == "none") {
+          if (input$sizeB1 == "none") {HorizontalHorizontal
             p <- p + geom_point(data = . %>% filter(`שם הרשות` %in% input$HighlightTownsB), 
                                 size = 1.2, color = "orange"
             )
@@ -982,17 +985,30 @@ server <- function(session, input, output) {
           }
         }
         
+        # p <- p +
+        #   labs(
+        #     x = XLAB,
+        #     y = YLAB,
+        #     color = NULL,
+        #     size = NULL
+        #   ) 
+        
         p <- p +
           labs(
             x = XLAB,
-            y = YLAB,
+            #y = YLAB,
+            y = NULL,
+            title = YLAB,
             color = NULL,
             size = NULL
-          ) 
+          ) +
+          theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
+        
+       
         
         
         
-        ggplotly(p, height = 600, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
+        ggplotly(p, height = 800, width = 1000, tooltip = "text", dynamicTicks = TRUE) %>% 
           add_annotations(
             x = ~x0,  # X coordinates of the labels
             y = ~y0,  # Y coordinates of the labels
@@ -1004,7 +1020,7 @@ server <- function(session, input, output) {
             xshift = 0,  # Horizontal shift (in pixels)
             yshift = 0  # Vertical shift (in pixels)
           ) %>% 
-          layout(legend = list(traceorder = "reversed", showlegend = TRUE), margin = list(l = 150)) %>% 
+          layout(legend = list(traceorder = "reversed", showlegend = TRUE), margin = list(t = 150)) %>% 
           config(displayModeBar = FALSE)
         
       } else if (input$BarPlotB == "Bar") { # Bar
