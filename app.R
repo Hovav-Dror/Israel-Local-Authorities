@@ -153,7 +153,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(7,
                                                div(
                                                  #style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 000px; padding-top: 0px;",
-                                                 style = "display: flex; align-items: center; justify-content: center; min-height: 1000px; padding-bottom: 100px; padding-top: 00px;margin-top: -250px;",
+                                                 #style = "display: flex; align-items: center; justify-content: center; min-height: 1000px; padding-bottom: 100px; padding-top: 00px;margin-top: -250px;",
+                                                 style = "display: flex; align-items: center; justify-content: center; padding-bottom: 100px; padding-top: 0px;",
                                                  uiOutput("EDAxyPlot"),
                                                )),
                                         column(5, div(
@@ -312,7 +313,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(7,
                                                div(
                                                  #style = "display: flex; align-items: center; justify-content: center; min-height: 800px; padding-bottom: 000px; padding-top: 0px;",
-                                                 style = "display: flex; align-items: center; justify-content: center; min-height: 1000px; padding-bottom: 100px; padding-top: 00px;margin-top: -250px;",
+                                                 #style = "display: flex; align-items: center; justify-content: center; min-height: 1000px; padding-bottom: 100px; padding-top: 00px;margin-top: -250px;",
+                                                 style = "display: flex; align-items: center; justify-content: center; padding-bottom: 100px; padding-top: 0px;",
                                                  uiOutput("EDAxyPlotB"),
                                                )),
                                         column(5, div(
