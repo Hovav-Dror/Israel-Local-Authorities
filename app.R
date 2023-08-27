@@ -6,7 +6,11 @@ library(tidyverse)
 library(plotly)
 library(shinythemes)
 library(shinyBS)
+library(leaflet)
+library(sf)
+library(scales)
 
+load("StatAreas.rda")
 load("MunicipalData.rda")
 
 Pop_and_Physical2021 <- Pop_and_Physical2021 %>% select(-"כללי: שם ועדת תכנון ובנייה")
@@ -76,12 +80,22 @@ suppressWarnings(
 )
 )
 
+StatisticalAreas2011$SHEM_YISH = iconv(StatisticalAreas2011$SHEM_YISH, to = "UTF-8", sub = "byte")
+t12Names$NamesHebrew <- str_remove(t12Names$NamesHebrew, " \\(1\\)")
+PoosibleVars <- t12Names$NamesHebrew[c(-2, -50)]
+Cities0 <- iconv(sort(unique(StatisticalAreas2011$SHEM_YISH)), to = "UTF-8", sub = "byte") 
+TopCities <- c("ירושלים", "תל אביב -יפו", "חיפה", "ראשון לציון", "פתח תקווה", "אשדוד", "נתניה", "באר שבע", "בני ברק", "חולון", "רמת גן", "אשקלון", "רחובות", "בת ים", "בית שמש", "כפר סבא")
+Cities0 <- c(TopCities,setdiff(Cities0, TopCities))
+
+na2 <- function(x, acc = 0.1) {ifelse(is.na(x), "-", ifelse(trunc(x) == x, comma(x,1), comma(x, acc)))}
+
+
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(theme = shinytheme("cerulean"),
                 #tags$head(includeHTML(("google-analytics.html"))),
                 #tags$style(type="text/css", "body {padding-top: 70px;}"),
-                navbarPage("קובץ רשויות מקומיות", id = "NavBar", position = "fixed-top", selected = "נתוני 2021",
+                navbarPage("קובץ רשויות מקומיות ונתוני אזורים סטטיסטיים", id = "NavBar", position = "fixed-top", selected = "נתוני 2021",
                            tabPanel("הקדמה",
                                     fluidPage(lang = "he",
                                               tags$style(
@@ -117,6 +131,9 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                               HTML("<div class='rtl'><span class='formatted-text'>הלמ\"ס <a href = 'https://www.cbs.gov.il/he/mediarelease/Pages/2023/%D7%A7%D7%95%D7%91%D7%A5-%D7%94%D7%A8%D7%A9%D7%95%D7%99%D7%95%D7%AA-%D7%94%D7%9E%D7%A7%D7%95%D7%9E%D7%99%D7%95%D7%AA-%D7%91%D7%99%D7%A9%D7%A8%D7%90%D7%9C-2021.aspx'  target='_blank'>פרסמו את קובץ הרשויות המקומיות</a> ויש בו המון מידע.</div>"),
                                               HTML("<div class='rtl'><span class='formatted-text'>הכנתי לעצמי משהו שמקל מעט על בחינת חלק מהנתונים שניתן למצוא שם. אז אשתף גם אתכם, אם אתם מחסידי הז'אנר.</div>"),
                                               HTML("<div class='rtl'><span class='formatted-text'>(חוץ מזה פה ושם מוסיף נתונים מקבצי למס אחרים או מקורות נוספים, ואז מידע יופיע בצד בהערות)</div>"),
+                                              p(),
+                                              HTML("<div class='rtl'><span class='formatted-text'>אבל בעצם למה רק נתוני רשויות מקומיות? דחפתי פנימה עוד מאגרי נתונים, ובכלל זה גם נתונים ברזולוציה עדינה יותר מישובים - על מפת אזורים סטטיסטיים</div>"),
+                                              p(),
                                               HTML("<div class='rtl'><span class='formatted-text'>מתאים לשימוש במחשב, לא מהנייד.</div>"),
                                               HTML("<div class='rtl'><span class='formatted-text'>השרת ממוקם כאן: <a href = 'https://numbersguys.com'  target='_blank'>https://numbersguys.com</a> ותוכלו למצוא שם גם הנגשה של נתוני גמלנט, ועוד קצת.</div>"),
                                               HTML("<div class='rtl'><span class='formatted-text'>hovav@hotmail.com - אם שימש אתכם, אשמח לשמוע</div>"),
@@ -126,7 +143,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                            ),
                            
                            # tabPanel גרף ------------------------------------------------------------
-                           tabPanel("נתוני 2021",
+                           tabPanel("רשויות - נתוני 2021",
                                     
                                     fluidPage(
                                       hr(),
@@ -284,7 +301,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                            ), # tabPanel 1
                            
                            # TabPanel Previous Years -------------------------------------------------
-                           tabPanel("Previous Years",
+                           tabPanel("Municipalites, Previous Years",
 
                                     fluidPage(
                                       hr(),
@@ -447,7 +464,148 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       #),
                                     ) 
                                       
-                           ) # tabPanel Years
+                           ), # tabPanel Years
+                           # tabPanel Map - by statistical areas ----
+                           tabPanel("Map - by statistical areas",
+                                    hr(),
+                                    p(),p(),p(),p(),p(),p(),p(),p(),
+                                    h2("מידע שקיים ברזולוציה של אזורים סטטיסטיים"),
+                                    h3("אזורים סטטיסטיים מכילים בדרך כלל מספר רחובות בתוך ישוב"),
+                                    sidebarLayout(
+                                      sidebarPanel(
+                                        h3(" "),
+                                        width = 2,
+                                        #  ____  pickerInput FillColorBy ----
+                                        tipify(
+                                          pickerInput(inputId = "FillColorBy", label = "צבע לפי", 
+                                                      choices = PoosibleVars,
+                                                      selected = "בחירות לכנסת 25, אחוז לקואליציה",
+                                                      options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                      multiple = FALSE
+                                          ),
+                                          "האזורים הסטטיסטיים יצבעו לפי ערך הבחירה כאן"
+                                        ),
+                                        #  ____  pickerInput AddToTooltip ----
+                                        tipify(
+                                          pickerInput(inputId = "AddToTooltip", label = "In Tooltip:", 
+                                                      choices = PoosibleVars,
+                                                      selected = PoosibleVars[c(6, 7, 16, 40)],
+                                                      options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                      multiple = TRUE
+                                          ),
+                                          "נתונים שיפורטו בתיבת הטקסט שמופיעה כשמרחפים עם העכבר מעל אזור סטטיסטי"
+                                        ),
+                                        #  ____  sliderInput LimitColors ----
+                                        tipify(
+                                          sliderInput("LimitColors", "Colors Sensitivity", min = 8, max = 58, value = c(8,58)),
+                                          "קביעת הרגישות של הצבעים. ערכי הקיצון של הצבע יקבעו כאן וערכי משתנה חריגים יותר יצבעו באותו צבע"
+                                        ),
+                                        
+                                        #  ____  sliderInput FilterColors ----
+                                        tipify(
+                                          sliderInput("FilterColors", "Filter Color Var", min = 8, max = 58, value = c(8,58)),
+                                          "אזורים סטטיסטיים שמשתנה הצבע מחוץ לתחום זה - לא יופיעו כלל"
+                                        ),
+                                        #  ____  radioGroupButtons ColorPallete ----
+                                        tipify(
+                                          radioGroupButtons(inputId = "ColorPallete", label = "צבעים", 
+                                                            choices = c("כחול-לבן", "לבן-כחול", "אדום-לבן", "לבן-אדום", "כחול-אדום", "אדום-כחול"),
+                                                            selected = "לבן-כחול"),
+                                          "בחירת סוג הצבעים בהם יעשה שימוש"
+                                        ),
+                                        #  ____  pickerInput Cities to show ----
+                                        fluidRow(
+                                          #style = "display: flex; flex-direction: row; align-items: center; text-align: center;",
+                                          column(8, 
+                                                 tipify(
+                                                   pickerInput(inputId = "CitiesFocus", label = "קפוץ לישובים:", 
+                                                               choices = Cities0,
+                                                               selected = NULL,
+                                                               options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                               multiple = TRUE
+                                                   ),
+                                                   "כשהבחירה כאן תשונה, המפה תוזז להכיל את הישובים הנבחרים"
+                                                 )),
+                                          column(2,
+                                                 tags$div(
+                                                   tags$label("Actions:", style="color: transparent"),    
+                                                   actionButton("updateB", "Update"))
+                                          )
+                                        ),
+                                        
+                                        hr(),
+                                        #  ____  pickerInput FilterByVar1 ----
+                                        tipify(
+                                          pickerInput(inputId = "FilterByVar1", label = "בחר משתנה לסינון 1", 
+                                                      choices = c("None", PoosibleVars),
+                                                      selected = "None",
+                                                      options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10, `noneResultsText` = "None" ),
+                                                      multiple = FALSE
+                                          ),
+                                          "יוצגו רק אזורים בהם אם יש מידע הוא בתוך תחום זה"
+                                        ),
+                                        tipify(
+                                          sliderInput("FilterByVar1Vals", "", min = -100000, max = 100000, value = c(-100000,100000)),
+                                          "יוצגו רק אזורים בהם אם יש מידע הוא בתוך תחום זה"
+                                        ),
+                                        #  ____  pickerInput FilterByVar2 ----
+                                        tipify(
+                                          pickerInput(inputId = "FilterByVar2", label = "בחר משתנה לסינון 2", 
+                                                      choices = c("None", PoosibleVars),
+                                                      selected = "None",
+                                                      options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10, `noneResultsText` = "None" ),
+                                                      multiple = FALSE
+                                          ),
+                                          "יוצגו רק אזורים בהם אם יש מידע הוא בתוך תחום זה"
+                                        ),
+                                        tipify(
+                                          sliderInput("FilterByVar2Vals", "", min = -100000, max = 100000, value = c(-100000,100000)),
+                                          "יוצגו רק אזורים בהם אם יש מידע הוא בתוך תחום זה"
+                                        ),
+                                        #  ____  pickerInput FilterByVar3 ----
+                                        tipify(
+                                          pickerInput(inputId = "FilterByVar3", label = "בחר משתנה לסינון 3", 
+                                                      choices = c("None", PoosibleVars),
+                                                      selected = "None",
+                                                      options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10, `noneResultsText` = "None" ),
+                                                      multiple = FALSE
+                                          ),
+                                          "יוצגו רק אזורים בהם אם יש מידע הוא בתוך תחום זה"
+                                        ),
+                                        tipify(
+                                          sliderInput("FilterByVar3Vals", "", min = -100000, max = 100000, value = c(-100000,100000)),
+                                          "יוצגו רק אזורים בהם אם יש מידע הוא בתוך תחום זה"
+                                        ),
+                                        #  ____  some text ----
+                                        hr(),
+                                        p("השכבה הבסיסית של הנתונים לקוחה מנתוני הלמ\"ס - אפיון יחידות גאוגרפיות וסיווגן לפי הרמה החברתית-כלכלית של האוכלוסייה בשנת 2019"),
+                                        p("המיפוי הוא אזורים סטטיסטיים בחלוקת שנת 2011"),
+                                        p("הוספתי מספר בסיסי נתונים נוספים, חלקם מהלמס, ונתוני הבחירות הם עיבוד שלי לנתוני ועדת הבחירות המרכזית.")
+                                        
+                                      ), # end sidebarPanel
+                                      
+                                      # *_ mainPanel ----
+                                      mainPanel(
+                                        #fluidRow(div(
+                                        # style = "display: flex; align-items: center; justify-content: center; min-height: 00px; max-height: 800px; padding-bottom: 000px; padding-top: 00px;",
+                                        
+                                        #leafletOutput("Map1"),
+                                        leafletOutput("Map1", height = "90vh"),
+                                        p(),
+                                        hr(),
+                                        DT::dataTableOutput("StatResultTable"),
+                                        p(),
+                                        hr(),
+                                        HTML("<div class='rtl'><span class='formatted-text'>משתנים אפשריים לבחירה:</div>"),
+                                        HTML(paste0("<div class='rtl'><span class='formatted-text'>", paste(PoosibleVars), "</div>")),
+                                        p(),
+                                        hr(),
+                                        hr(),
+                                        #)),
+                                        
+                                      )
+                                    )
+                           )
                 ) # navbarPage
 ) # ui
 
@@ -1263,6 +1421,278 @@ server <- function(session, input, output) {
       HTML("<div dir='rtl'>", Comments1label,"</div>"),
       style = "text-align: right; margin: 000px;"
     )
+    
+  })
+  
+  # statistical areas map server part ----
+  # filteredData ----
+  filteredData <- reactive({
+    Fill1 <- input$FillColorBy
+    Fill2 <- t12Names %>% filter(NamesHebrew == Fill1) %>% pull(Names)
+    
+    tltp <- input$AddToTooltip
+    tltpv <- tibble(NamesHebrew = tltp) %>% left_join(t12Names) %>% pull(Names)
+    
+    db <- StatisticalAreas2011
+    
+    if ((FilterByVar1rv$SelectedVarORG != "None") & (FilterByVar1rv$SelectedVarORG == input$FilterByVar1)) {
+      SelectedVar <- FilterByVar1rv$SelectedVar
+      if (!between(input$FilterByVar1Vals[1], FilterByVar1rv$Range1[1], FilterByVar1rv$Range1[2]) ) {Min1 = FilterByVar1rv$Range1[1]} else {Min1 = input$FilterByVar1Vals[1]}
+      if (!between(input$FilterByVar1Vals[2], FilterByVar1rv$Range1[1], FilterByVar1rv$Range1[2]) ) {Max1 = FilterByVar1rv$Range1[2]} else {Max1 = input$FilterByVar1Vals[2]}
+      #Range1 <- FilterByVar1rv$Range1 
+      db <- db %>% filter(between(!!sym(SelectedVar), Min1, Max1))
+    }
+    
+    if ((FilterByVar2rv$SelectedVarORG != "None") & (FilterByVar2rv$SelectedVarORG == input$FilterByVar2)) {
+      SelectedVar <- FilterByVar2rv$SelectedVar
+      if (!between(input$FilterByVar2Vals[1], FilterByVar2rv$Range1[1], FilterByVar2rv$Range1[2]) ) {Min1 = FilterByVar2rv$Range1[1]} else {Min1 = input$FilterByVar2Vals[1]}
+      if (!between(input$FilterByVar2Vals[2], FilterByVar2rv$Range1[1], FilterByVar2rv$Range1[2]) ) {Max1 = FilterByVar2rv$Range1[2]} else {Max1 = input$FilterByVar2Vals[2]}
+      #Range1 <- FilterByVar1rv$Range1 
+      db <- db %>% filter(between(!!sym(SelectedVar), Min1, Max1))
+    }
+    
+    if ((FilterByVar3rv$SelectedVarORG != "None") & (FilterByVar3rv$SelectedVarORG == input$FilterByVar3)) {
+      SelectedVar <- FilterByVar3rv$SelectedVar
+      if (!between(input$FilterByVar3Vals[1], FilterByVar3rv$Range1[1], FilterByVar3rv$Range1[2]) ) {Min1 = FilterByVar3rv$Range1[1]} else {Min1 = input$FilterByVar3Vals[1]}
+      if (!between(input$FilterByVar3Vals[2], FilterByVar3rv$Range1[1], FilterByVar3rv$Range1[2]) ) {Max1 = FilterByVar3rv$Range1[2]} else {Max1 = input$FilterByVar3Vals[2]}
+      #Range1 <- FilterByVar1rv$Range1 
+      db <- db %>% filter(between(!!sym(SelectedVar), Min1, Max1))
+    }
+    
+    
+    db <- db[, unique(c(Fill2, tltpv, "population", "SHEM_YISH", "STAT11", "NEIGHBORHOOD", "STREETS", "geometry"))]
+    
+    db <- db %>%
+      mutate(Fill3 = !!sym(Fill2)) %>%
+      filter(between(Fill3, input$FilterColors[1], input$FilterColors[2]) | is.na(Fill3)) %>% 
+      mutate(Fill4 = case_when(
+        Fill3 < input$LimitColors[1] ~ input$LimitColors[1], 
+        Fill3 > input$LimitColors[2] ~ input$LimitColors[2],
+        TRUE ~ Fill3
+      )) %>% 
+      mutate(
+        Label = paste0(
+          "<div style='text-align: right; direction: rtl;'>",
+          SHEM_YISH, "<br>",
+          "אזור סטטיסטי: ", na2(STAT11, 1), "<br>")) %>% 
+      mutate(Label = ifelse(NEIGHBORHOOD == "", Label, paste0(Label ,NEIGHBORHOOD, "<br>"))) %>% 
+      mutate(Label = ifelse(STREETS == "", Label, paste0(Label,STREETS, "<br>"))) %>% 
+      mutate(Label = paste0(Label,
+                            "<br>",
+                            "אוכלוסיה: ", na2(population, 1), "<br>",                     
+                            "<b>", !!Fill1, ": ", na2(Fill3), "<br>", "</b>"
+      ))
+    
+    if (length(tltp) > 0) {
+      for (i in 1:length(tltp)) {
+        db <- db %>% mutate(Label = paste0(Label, "<br>",
+                                           tltp[i], ": ", na2(db[, tltpv[i]] %>% pull(1))
+        ))
+      }
+    }
+    
+    db <- db %>% mutate(Label = paste0(Label, "</div>")) %>% 
+      mutate(Label = iconv(Label, to = "UTF-8", sub = "byte")) 
+    
+    db
+    
+  })
+  
+  # observeEvent FillColorBy ----
+  FillColorByrv <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
+  
+  observeEvent(input$FillColorBy, {
+    Fill1 <- input$FillColorBy
+    Fill2 <- t12Names %>% filter(NamesHebrew == Fill1) %>% pull(Names)
+    
+    
+    Values <- StatisticalAreas2011[, Fill2] %>% pull(1)
+    Pretty1 <- pretty(Values, n = 20)
+    Step <- Pretty1[2] - Pretty1[1]
+    Min <- Pretty1[1]
+    Max <- Pretty1[length(Pretty1)]
+    
+    updateSliderInput(session, "LimitColors", min = Min, max = Max, value = c(Min, Max))
+    updateSliderInput(session, "FilterColors", min = Min, max = Max, value = c(Min, Max))
+    
+    FillColorByrv$SelectedVarORG = Fill1
+    FillColorByrv$SelectedVar = Fill2
+    FillColorByrv$Range1 = c(Min, Max)
+  })
+  
+  # pal1 (color pallete) ----
+  pal1 <- reactive({
+    
+    CC1 <- input$ColorPallete
+    Fill1 <- input$FillColorBy
+    Fill2 <- t12Names %>% filter(NamesHebrew == Fill1) %>% pull(Names)
+    
+    domain1 <- filteredData()[, "Fill4"] %>% pull(1)
+    if ((FillColorByrv$SelectedVarORG == input$FillColorBy)) {
+      SelectedVar <- FilterByVar1rv$SelectedVar
+      if (!between(input$LimitColors[1], FillColorByrv$Range1[1], FillColorByrv$Range1[2]) ) {Min1 = FillColorByrv$Range1[1]} else {Min1 = input$LimitColors[1]}
+      if (!between(input$LimitColors[2], FillColorByrv$Range1[1], FillColorByrv$Range1[2]) ) {Max1 = FillColorByrv$Range1[2]} else {Max1 = input$LimitColors[2]}
+      domain1[domain1 < Min1] = Min1
+      domain1[domain1 > Max1] = Max1
+    } 
+    
+    # domain1[domain1 < input$LimitColors[1]] = input$LimitColors[1]
+    # domain1[domain1 > input$LimitColors[2]] = input$LimitColors[2]
+    
+    ColorPallete1 <- case_when(
+      CC1 == "לבן-כחול" ~ c("white", "blue"),
+      CC1 == "כחול-לבן" ~ c("white", "blue"),
+      CC1 == "אדום-לבן" ~ c("white", "red"),
+      CC1 == "לבן-אדום" ~ c("white", "red"),
+      CC1 == "כחול-אדום"~ c("red", "blue"),
+      CC1 ==  "אדום-כחול" ~ c("red", "blue"),
+      #CC1 == "כחול-לבן" ~ c("red", "white"),
+      TRUE ~ c("white", "black")
+    )
+    
+    Rev1 <- case_when(
+      CC1 == "לבן-כחול" ~ FALSE,
+      CC1 == "כחול-לבן" ~ TRUE,
+      CC1 == "אדום-לבן" ~ TRUE,
+      CC1 == "לבן-אדום" ~ FALSE,
+      CC1 == "כחול-אדום"~ TRUE,
+      CC1 ==  "אדום-כחול" ~ FALSE,
+      #CC1 == "כחול-לבן" ~ c("red", "white"),
+      TRUE ~ FALSE
+    )
+    
+    colorNumeric(
+      palette = ColorPallete1,
+      na.color = "#E3D8D7",
+      reverse = Rev1,
+      domain = domain1
+    )
+    
+  })
+  
+  # Map1 ----
+  output$Map1 <- renderLeaflet({
+    
+    leaflet() %>%
+      addTiles() %>%
+      fitBounds(lng1 = 34.747, lat1 = 32.032, lng2 = 34.842, lat2 = 32.133) 
+    
+  }) # output$Map1
+  
+  # proxy map ----
+  observe({
+    pal <- tryCatch({pal1()},error = function(e) {
+      colorNumeric(palette = c("white", "blue"), na.color = "#E3D8D7",domain = seq(-100000,100000, length.out = nrow(filteredData())))},
+      finally = {}) 
+    
+    leafletProxy("Map1", data = filteredData()) %>%
+      clearShapes() %>%
+      addPolygons(
+        fillColor = ~pal(Fill4), fillOpacity = 0.7,
+        opacity = 0.1, weight = 5, color = ~"black", #color = ~pal1(STAT11), color = ~"black",
+        label = ~paste(Label) %>% lapply(htmltools::HTML),
+        labelOptions = labelOptions(
+          style = list("font-weight" = "normal", padding = "3px 8px"),
+          textsize = "12px",
+          direction = "auto",
+        ))
+    
+  })
+  
+  # update CitiesFocus ----
+  
+  rv <- reactiveValues()
+  
+  observeEvent(input$updateB, {
+    if(!is.null(input$CitiesFocus)){
+      selected_options <- input$CitiesFocus
+      # Reorder choices: selected ones on top, then the rest
+      choices <- c(selected_options, setdiff(Cities0, selected_options))
+      
+      # Update pickerInput with reordered choices
+      rv$choices <- choices
+      rv$selected <- selected_options
+      
+    }
+  })
+  
+  observeEvent(rv$choices,{
+    updatePickerInput(session, "CitiesFocus", choices = rv$choices, selected = rv$selected)
+    
+    NewBorders <- StatisticalAreas2011 %>%
+      filter(SHEM_YISH %in% rv$selected) %>% 
+      rowwise() %>%
+      mutate(xmin = st_bbox(geometry)[1], xmax = st_bbox(geometry)[3], ymin = st_bbox(geometry)[2], ymax = st_bbox(geometry)[4]) %>% 
+      select(xmin, xmax, ymin, ymax) %>% 
+      ungroup %>% 
+      summarise(xmin = min(xmin, na.rm = T), xmax = max(xmax, na.rm = T), ymin = min(ymin, na.rm = T), ymax = max(ymax, na.rm = T))
+    
+    leafletProxy("Map1", data = filteredData()) %>%
+      #fitBounds(lng1 = 34.147, lat1 = 32.032, lng2 = 34.942, lat2 = 32.133)
+      fitBounds(lng1 = NewBorders$xmin, lat1 = NewBorders$ymin, lng2 = NewBorders$xmax, lat2 = NewBorders$ymax)
+  })
+  
+  # observe FilterByVar1 ----
+  FilterByVar1rv <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
+  
+  observeEvent(input$FilterByVar1, {
+    
+    if (input$FilterByVar1 != "None") {
+      FilterByVar1rv$SelectedVarORG = input$FilterByVar1
+      SelectedVar <- left_join(tibble(NamesHebrew = input$FilterByVar1), t12Names) %>% pull(Names)
+      FilterByVar1rv$SelectedVar = SelectedVar
+      Range1 <- pretty(range(as.numeric(StatisticalAreas2011[[SelectedVar]]), na.rm = T))
+      Range1 <- c(Range1[1], Range1[length(Range1)])
+      FilterByVar1rv$Range1 <- Range1
+      updateSliderInput(session = session, "FilterByVar1Vals", min = Range1[1], max = Range1[2], value = Range1)
+    }
+  })
+  
+  # observe FilterByVar2 ----
+  FilterByVar2rv <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
+  
+  observeEvent(input$FilterByVar2, {
+    
+    if (input$FilterByVar2 != "None") {
+      FilterByVar2rv$SelectedVarORG = input$FilterByVar2
+      SelectedVar <- left_join(tibble(NamesHebrew = input$FilterByVar2), t12Names) %>% pull(Names)
+      FilterByVar2rv$SelectedVar = SelectedVar
+      Range1 <- pretty(range(as.numeric(StatisticalAreas2011[[SelectedVar]]), na.rm = T))
+      Range1 <- c(Range1[1], Range1[length(Range1)])
+      FilterByVar2rv$Range1 <- Range1
+      updateSliderInput(session = session, "FilterByVar2Vals", min = Range1[1], max = Range1[2], value = Range1)
+    }
+  })
+  
+  # observe FilterByVar3 ----
+  FilterByVar3rv <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
+  
+  observeEvent(input$FilterByVar3, {
+    
+    if (input$FilterByVar3 != "None") {
+      FilterByVar3rv$SelectedVarORG = input$FilterByVar3
+      SelectedVar <- left_join(tibble(NamesHebrew = input$FilterByVar3), t12Names) %>% pull(Names)
+      FilterByVar3rv$SelectedVar = SelectedVar
+      Range1 <- pretty(range(as.numeric(StatisticalAreas2011[[SelectedVar]]), na.rm = T))
+      Range1 <- c(Range1[1], Range1[length(Range1)])
+      FilterByVar3rv$Range1 <- Range1
+      updateSliderInput(session = session, "FilterByVar3Vals", min = Range1[1], max = Range1[2], value = Range1)
+    }
+  })
+  
+  
+  output$StatResultTable <- DT::renderDataTable({
+    
+    db <- as_tibble(filteredData()) %>% select(-c(Fill3, Fill4, Label, geometry))
+    
+    n1 <- names(db)
+    n2 <- left_join(tibble(Names = n1), t12Names %>% bind_rows(tibble(NamesHebrew = c("ישוב", "שכונה", "רחובות"),
+                                                               NamesEnglish = c("SHEM_YISH", "NEIGHBORHOOD", "STREETS"),
+                                                               Names = c("SHEM_YISH", "NEIGHBORHOOD", "STREETS")))) %>% 
+      pull(NamesHebrew)
+    names(db) <- n2
+    
+    DT::datatable(db)
     
   })
   
