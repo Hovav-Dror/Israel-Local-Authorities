@@ -24,60 +24,60 @@ Pop_and_Physical2021 <- Pop_and_Physical2021 %>%
 Names1 <- names(Pop_and_Physical2021)
 suppressWarnings(
   Combined <- bind_rows(
-  Pop_and_Physical2021 %>% 
-    mutate(across(-`שם הרשות`, as.numeric)) %>% 
-    pivot_longer(-`שם הרשות`) %>% 
-    mutate(Year = 2021) %>% 
-    drop_na(),
-  Pop_and_Physical2020 %>% 
-    select(any_of(Names1)) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-           .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
-    relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-    mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-           `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
-    mutate(across(-`שם הרשות`, as.numeric)) %>% 
-    pivot_longer(-`שם הרשות`) %>% 
-    mutate(Year = 2020) %>% 
-    drop_na(),
-  Pop_and_Physical2019 %>% 
-    select(any_of(Names1)) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-           .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-    relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-    mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-           `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
-    mutate(across(-`שם הרשות`, as.numeric)) %>% 
-    pivot_longer(-`שם הרשות`) %>% 
-    mutate(Year = 2019) %>% 
-    drop_na(),
-  Pop_and_Physical2018 %>% 
-    select(any_of(Names1)) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-           .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-    relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-    mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-           `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
-    mutate(across(-`שם הרשות`, as.numeric)) %>% 
-    pivot_longer(-`שם הרשות`) %>% 
-    mutate(Year = 2018) %>% 
-    drop_na(),
-  Pop_and_Physical2017 %>% 
-    select(any_of(Names1)) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-           .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-    mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
-    relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-    mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-           `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
-    mutate(across(-`שם הרשות`, as.numeric)) %>% 
-    pivot_longer(-`שם הרשות`) %>% 
-    mutate(Year = 2017) %>% 
-    drop_na(),
-)
+    Pop_and_Physical2021 %>% 
+      mutate(across(-`שם הרשות`, as.numeric)) %>% 
+      pivot_longer(-`שם הרשות`) %>% 
+      mutate(Year = 2021) %>% 
+      drop_na(),
+    Pop_and_Physical2020 %>% 
+      select(any_of(Names1)) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
+      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      mutate(across(-`שם הרשות`, as.numeric)) %>% 
+      pivot_longer(-`שם הרשות`) %>% 
+      mutate(Year = 2020) %>% 
+      drop_na(),
+    Pop_and_Physical2019 %>% 
+      select(any_of(Names1)) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      mutate(across(-`שם הרשות`, as.numeric)) %>% 
+      pivot_longer(-`שם הרשות`) %>% 
+      mutate(Year = 2019) %>% 
+      drop_na(),
+    Pop_and_Physical2018 %>% 
+      select(any_of(Names1)) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      mutate(across(-`שם הרשות`, as.numeric)) %>% 
+      pivot_longer(-`שם הרשות`) %>% 
+      mutate(Year = 2018) %>% 
+      drop_na(),
+    Pop_and_Physical2017 %>% 
+      select(any_of(Names1)) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
+      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      mutate(across(-`שם הרשות`, as.numeric)) %>% 
+      pivot_longer(-`שם הרשות`) %>% 
+      mutate(Year = 2017) %>% 
+      drop_na(),
+  )
 )
 
 StatisticalAreas2011$SHEM_YISH = iconv(StatisticalAreas2011$SHEM_YISH, to = "UTF-8", sub = "byte")
@@ -93,9 +93,11 @@ na2 <- function(x, acc = 0.1) {ifelse(is.na(x), "-", ifelse(trunc(x) == x, comma
 # UI ----------------------------------------------------------------------
 
 ui <- fluidPage(theme = shinytheme("cerulean"),
+                
                 #tags$head(includeHTML(("google-analytics.html"))),
                 #tags$style(type="text/css", "body {padding-top: 70px;}"),
-                navbarPage("קובץ רשויות מקומיות ונתוני אזורים סטטיסטיים", id = "NavBar", position = "fixed-top", selected = "נתוני 2021",
+                #navbarPage("קובץ רשויות מקומיות ונתוני אזורים סטטיסטיים", id = "NavBar", position = "fixed-top", selected = "נתוני 2021",
+                navbarPage("קובץ רשויות מקומיות ונתוני אזורים סטטיסטיים", id = "NavBar", position = "fixed-top", selected = "הקדמה",
                            tabPanel("הקדמה",
                                     fluidPage(lang = "he",
                                               tags$style(
@@ -172,18 +174,18 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                # ),
                                                # "בלבד Y גרף עמודות, המשתמש בציר"),
                                                tipify(
-                                               radioGroupButtons(
-                                                 inputId = "BarPlot",
-                                                 
-                                                 label = "סוג תרשים",
-                                                 choices = c("Scatter",
-                                                             "Bar", "Group", "Boxplot"),
-                                                 justified = TRUE,
-                                                 checkIcon = list(
-                                                   yes = icon("ok",
-                                                              lib = "glyphicon"))
-                                               ),
-                                               HTML("שתי האפשרויות הראשונות מתאימות להשוואה בין ערים<br>למשל לראות באיזה ערים יש אחוז אבטלה גבוה, כתלות באחוז השמנה<br><br>שתי האפשרויות האחרונות מתאימות להשוואה בין משתנים, ללא פרוט לעיר ספציפית<br>למשל מה התפלגות מספר המורים כתלות באשכול כלכלי-חברתי")),
+                                                 radioGroupButtons(
+                                                   inputId = "BarPlot",
+                                                   
+                                                   label = "סוג תרשים",
+                                                   choices = c("Scatter",
+                                                               "Bar", "Group", "Boxplot"),
+                                                   justified = TRUE,
+                                                   checkIcon = list(
+                                                     yes = icon("ok",
+                                                                lib = "glyphicon"))
+                                                 ),
+                                                 HTML("שתי האפשרויות הראשונות מתאימות להשוואה בין ערים<br>למשל לראות באיזה ערים יש אחוז אבטלה גבוה, כתלות באחוז השמנה<br><br>שתי האפשרויות האחרונות מתאימות להשוואה בין משתנים, ללא פרוט לעיר ספציפית<br>למשל מה התפלגות מספר המורים כתלות באשכול כלכלי-חברתי")),
                                                
                                         ),
                                         
@@ -302,7 +304,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                            
                            # TabPanel Previous Years -------------------------------------------------
                            tabPanel("Municipalites, Previous Years",
-
+                                    
                                     fluidPage(
                                       hr(),
                                       p(),p(),p(),p(),p(),p(),p(),p(),
@@ -463,7 +465,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       # column(2, pickerInput("color2", "Color", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "none" , options = pickerOptions(liveSearch = T) )),
                                       #),
                                     ) 
-                                      
+                                    
                            ), # tabPanel Years
                            # tabPanel Map - by statistical areas ----
                            tabPanel("Map - by statistical areas",
@@ -711,8 +713,8 @@ server <- function(session, input, output) {
     }
     if (input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000")) {
       if (input$AdjustPopBy == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
-      db <- db %>% 
-        mutate(y0 = .data[[input$yaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+        db <- db %>% 
+          mutate(y0 = .data[[input$yaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
       } else {
         db <- db %>% 
           mutate(y0 = .data[[input$yaxis1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy]]/100) * 1000) 
@@ -1011,7 +1013,7 @@ server <- function(session, input, output) {
         pull(comment)
       if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$color1, ": <b><br>", c1, "</b><br>") }
     }
-   
+    
     if (first(Comments1label) != "") {Comments1label <- paste0("הערות:", "<br>", paste0(Comments1label, collapse = "<br>"))}
     
     if (input$AdjustPopBy == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
@@ -1021,7 +1023,7 @@ server <- function(session, input, output) {
         " (מתוקנן לאוכלוסיית ",
         Names1[str_detect(Names1, input$AdjustPopBy)] %>% str_extract("בני.*"),
         ")"
-                        )
+      )
     }
     
     Comments1label <- paste0("ציר Y: <b>", input$yaxis1, ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"), Metuknan, ""),"</b><br>",
@@ -1073,25 +1075,25 @@ server <- function(session, input, output) {
       filter(any(name == "דמוגרפיה: ערבים (אחוזים)" & value >= input$ArabsB[1] & value <= input$ArabsB[2])) %>% 
       filter(str_detect(str_replace_all(name, "\\(|\\)", ""), paste( input$AdjustPopByB, str_replace_all(input$xaxisB1, "\\(|\\)", ""), str_replace_all(input$yaxisB1, "\\(|\\)", ""), str_replace_all(input$colorB1, "\\(|\\)", ""), str_replace_all(input$sizeB1, "\\(|\\)", ""), "כ אוכלוסייה בסוף השנה", sep = "|"))) %>% 
       ungroup
-      
+    
     db <- db %>% pivot_wider(names_from = name, values_from = value)
     
     
-      if (input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז") & !str_detect(input$xaxisB1, "ל-1000")) {
-        if (input$AdjustPopByB == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+    if (input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז") & !str_detect(input$xaxisB1, "ל-1000")) {
+      if (input$AdjustPopByB == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
         db <- db %>% 
           mutate(x0 = .data[[input$xaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
-        } else {
-          db <- db %>% 
-            mutate(x0 = .data[[input$xaxisB1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopByB]]/100) * 1000) 
-        }
       } else {
-        db <- db %>% mutate(x0 = .data[[input$xaxisB1]])
+        db <- db %>% 
+          mutate(x0 = .data[[input$xaxisB1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopByB]]/100) * 1000) 
       }
+    } else {
+      db <- db %>% mutate(x0 = .data[[input$xaxisB1]])
+    }
     if (input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000")) {
       if (input$AdjustPopByB == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
-      db <- db %>% 
-        mutate(y0 = .data[[input$yaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
+        db <- db %>% 
+          mutate(y0 = .data[[input$yaxisB1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000)
       } else {
         db <- db %>% 
           mutate(y0 = .data[[input$yaxisB1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopByB]]/100) * 1000) 
@@ -1099,8 +1101,8 @@ server <- function(session, input, output) {
     } else {
       db <- db %>% mutate(y0 = .data[[input$yaxisB1]])
     }
-     
-   
+    
+    
     if (input$sizeB1 != "none") {
       db <- db %>% mutate(s0 = .data[[input$sizeB1]])
       if (input$sizeB1 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {db <- db %>% mutate(s0 = max(.data[[input$sizeB1]], na.rm = T), .by = `שם הרשות`)}
@@ -1128,10 +1130,10 @@ server <- function(session, input, output) {
         db <- db %>% mutate(c0 = Year)
         
         p <- db %>% mutate(text =  paste0(`שם הרשות`  , "<br>", 
-                              input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                              input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                              input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
-                              input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))) %>% 
+                                          input$xaxis1, " ", prettyNum(x0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                                          input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                                          input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
+                                          input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))) %>% 
           mutate(text = str_replace_all(text, "none <br>", "")) %>% 
           mutate(text = str_replace_all(text, "none ", "")) %>% 
           mutate(text = str_replace_all(text, "NA", "")) %>% 
@@ -1231,7 +1233,7 @@ server <- function(session, input, output) {
                                           input$yaxis1, " ", prettyNum(y0, scientific = F, big.mark = ",", digits = 4), "<br>"
                                           #input$size1, " ", prettyNum(s0, scientific = F, big.mark = ",", digits = 4), "<br>", 
                                           #input$color1, " ", prettyNum(c0, scientific = F, big.mark = ",", digits = 4))
-                                          )) %>% 
+        )) %>% 
           mutate(text = str_replace_all(text, "none <br>", "")) %>% 
           mutate(text = str_replace_all(text, "none ", "")) %>% 
           mutate(text = str_replace_all(text, "NA", "")) %>% 
@@ -1290,8 +1292,8 @@ server <- function(session, input, output) {
           #   xshift = 0,  # Horizontal shift (in pixels)
           #   yshift = 0  # Vertical shift (in pixels)
           # ) %>%
-          # layout(margin = list(l = 150)) %>%
-          layout(legend = list(traceorder = "reversed", showlegend = TRUE), xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20, color = "white"))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+        # layout(margin = list(l = 150)) %>%
+        layout(legend = list(traceorder = "reversed", showlegend = TRUE), xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20, color = "white"))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
           config(displayModeBar = FALSE)
       } else if (input$BarPlotB == "Group") { # Group
         
@@ -1314,7 +1316,7 @@ server <- function(session, input, output) {
           drop_na(y0) %>% rename(text3 = text) %>% ungroup %>% arrange(Year) %>% mutate(Year = factor(Year))
         
         YLAB <- paste0("ממוצע ", YLAB, "<br>", "לפי קבוצות", XLAB)
-
+        
         # plot_ly(db, x = ~y0, y = ~x0, type = "bar", orientation = "h", text = ~text3, hoverinfo = ~text2, texttemplate = "%{hoverinfo}") %>% 
         #   layout(xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
         #   config(displayModeBar = FALSE)
@@ -1349,9 +1351,9 @@ server <- function(session, input, output) {
         YLAB <- paste0("התפלגות ", YLAB, "<br>", "לפי קבוצות", XLAB)
         
         suppressWarnings(
-        plot_ly(db, x = ~y0, y = ~x0, color = ~Year, type = "box", orientation = "h", colors = c("red", "blue")) %>% 
-          layout(legend = list(traceorder = "reversed"), boxmode = "group", xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
-          config(displayModeBar = FALSE)
+          plot_ly(db, x = ~y0, y = ~x0, color = ~Year, type = "box", orientation = "h", colors = c("red", "blue")) %>% 
+            layout(legend = list(traceorder = "reversed"), boxmode = "group", xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+            config(displayModeBar = FALSE)
         )
       }
     })
@@ -1494,6 +1496,21 @@ server <- function(session, input, output) {
     db <- db %>% mutate(Label = paste0(Label, "</div>")) %>% 
       mutate(Label = iconv(Label, to = "UTF-8", sub = "byte")) 
     
+    db <- db %>% 
+      mutate(
+        xmin = map_dbl(geometry, ~ st_bbox(.x)[1]),
+        ymin = map_dbl(geometry, ~ st_bbox(.x)[2]),
+        xmax = map_dbl(geometry, ~ st_bbox(.x)[3]),
+        ymax = map_dbl(geometry, ~ st_bbox(.x)[4])
+      ) 
+    
+    bound <- input$Map1_bounds
+    if (!is.null(bound)) {
+      db <- db %>% 
+        filter(xmax > bound$west, xmin < bound$east, ymin < bound$north, ymax > bound$south)
+    }
+    db <- db %>% select(-c(xmin, ymin, xmax, ymax))
+    
     db
     
   })
@@ -1599,6 +1616,13 @@ server <- function(session, input, output) {
     
   })
   
+  map2 <- leafletProxy("Map1")
+  
+  observeEvent(map2$bounds, {
+    bounds <- map2$getBounds()
+    browser()
+  })
+  
   # update CitiesFocus ----
   
   rv <- reactiveValues()
@@ -1687,8 +1711,8 @@ server <- function(session, input, output) {
     
     n1 <- names(db)
     n2 <- left_join(tibble(Names = n1), t12Names %>% bind_rows(tibble(NamesHebrew = c("ישוב", "שכונה", "רחובות"),
-                                                               NamesEnglish = c("SHEM_YISH", "NEIGHBORHOOD", "STREETS"),
-                                                               Names = c("SHEM_YISH", "NEIGHBORHOOD", "STREETS")))) %>% 
+                                                                      NamesEnglish = c("SHEM_YISH", "NEIGHBORHOOD", "STREETS"),
+                                                                      Names = c("SHEM_YISH", "NEIGHBORHOOD", "STREETS")))) %>% 
       pull(NamesHebrew)
     names(db) <- n2
     
