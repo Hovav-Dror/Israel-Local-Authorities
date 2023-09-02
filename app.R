@@ -12,6 +12,8 @@ library(scales)
 
 load("StatAreas.rda")
 load("MunicipalData.rda")
+load("CityGeoms.rda")
+CitiesGeom <- CitiesGeom %>% mutate(SHEM_YISH = iconv(SHEM_YISH, to = "UTF-8", sub = "byte"))
 
 Pop_and_Physical2021 <- Pop_and_Physical2021 %>% select(-"כללי: שם ועדת תכנון ובנייה")
 Pop_and_Physical2021 <- Pop_and_Physical2021 %>% 
@@ -302,6 +304,73 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     ) # fluidPage
                            ), # tabPanel 1
                            
+                           # tabPanel Map (municipalities) ----
+                           tabPanel("Map", id = "Map",
+                                    hr(),
+                                    p(),p(),p(),p(),p(),p(),p(),p(),
+                                    h2("- "),
+                                    h3("זמן הטעינה של המפה ואחר-כך של הופעת פוליגוני הצבע עליה, עשוי להיות ארוך"),
+                                    sidebarLayout(
+                                      sidebarPanel(
+                                        h3(" "),
+                                        h3("נדרש לשנות את הבחירה פעם אחת כדי שהגרף יאותחל"),
+                                        width = 2,
+                                        #  ____  pickerInput FillColorBy ----
+                                        tipify(
+                                          pickerInput("yaxis01", "צבע לפי", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T)),
+                                          # pickerInput(inputId = "FillColorBy111", label = "צבע לפי", 
+                                          #             choices = PoosibleVars,
+                                          #             selected = "בחירות לכנסת 25, אחוז לקואליציה",
+                                          #             options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                          #             multiple = FALSE
+                                          # ),
+                                          "האזורים הסטטיסטיים יצבעו לפי ערך הבחירה כאן"
+                                        ),
+                                        pickerInput(inputId = "AdjustPopBy0", label = "בתקנון לאוכלוסיה", 
+                                                    choices = c("ללא תקנון", Names1[str_detect(Names1, "ייה בסוף השנה")]),
+                                                    #selected = Names1[str_detect(Names1, "ייה בסוף השנה")][1],
+                                                    selected = "ללא תקנון",
+                                                    #options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                    multiple = FALSE
+                                        ),
+                                        tipify(
+                                          sliderInput("LimitColors0", "Colors Sensitivity", min = 8, max = 58, value = c(8,58)),
+                                          "קביעת הרגישות של הצבעים. ערכי הקיצון של הצבע יקבעו כאן וערכי משתנה חריגים יותר יצבעו באותו צבע"
+                                        ),
+                                        
+                                        #  ____  sliderInput FilterColors ----
+                                        tipify(
+                                          sliderInput("FilterColors0", "Filter Color Var", min = 8, max = 58, value = c(8,58)),
+                                          "ישובים שמשתנה הצבע מחוץ לתחום זה - לא יופיעו כלל"
+                                        ),
+                                        #  ____  pickerInput AddToTooltip ----
+                                        tipify(
+                                          pickerInput(inputId = "Map0Tooltip", label = "מידע שיופיע בבועת בריחוף עכבר", 
+                                                      choices = Pop_and_Physical2021 %>% select_if(is.numeric) %>% names(),
+                                                      selected = NULL,
+                                                      options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                      multiple = TRUE
+                                          ), "משתנים שניתן להוסיף ושהערכים שלהם יופיעו בבועה של הישוב בריחוף עכבר מעליו"
+                                        ),
+                                        tipify(
+                                          radioGroupButtons(inputId = "ColorPallete0", label = "צבעים", 
+                                                            choices = c("כחול-לבן", "לבן-כחול", "אדום-לבן", "לבן-אדום", "כחול-אדום", "אדום-כחול"),
+                                                            selected = "לבן-כחול"),
+                                          "בחירת סוג הצבעים בהם יעשה שימוש"
+                                        ),
+                                        # h3("שאר הבחירה היא מהטאב הקודם"),
+                                        # h3("בדגש לתקנון לאוכלוסיה וכו"),
+                                      ), # end sidebarPanel
+                                      mainPanel(
+                                        #fluidRow(div(
+                                        # style = "display: flex; align-items: center; justify-content: center; min-height: 00px; max-height: 800px; padding-bottom: 000px; padding-top: 00px;",
+                                        
+                                        #leafletOutput("Map0"),
+                                        leafletOutput("Map0", height = "90vh")
+                                      )
+                                    ) # end sidebarLayout
+                           ), # end tabPanel Map
+                           
                            # TabPanel Previous Years -------------------------------------------------
                            tabPanel("Municipalites, Previous Years",
                                     
@@ -467,6 +536,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     ) 
                                     
                            ), # tabPanel Years
+                           
                            # tabPanel Map - by statistical areas ----
                            tabPanel("Map - by statistical areas",
                                     hr(),
@@ -1517,6 +1587,7 @@ server <- function(session, input, output) {
   
   # observeEvent FillColorBy ----
   FillColorByrv <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
+  FillColorByrv0 <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
   
   observeEvent(input$FillColorBy, {
     Fill1 <- input$FillColorBy
@@ -1587,6 +1658,234 @@ server <- function(session, input, output) {
     
   })
   
+  FillColorByrv0 <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
+  
+  observeEvent(c(input$yaxis01, input$AdjustPopBy0), {
+    Fill1 <- input$yaxis01
+    #Fill2 <- t12Names %>% filter(NamesHebrew == Fill1) %>% pull(Names)
+    
+    if (input$AdjustPopBy0 == "ללא תקנון") {
+      Metuknan = ""
+    } else if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+      Metuknan = " (מתוקנן לאוכלוסיה)"
+    } else {
+      Metuknan = paste0(
+        " (מתוקנן לאוכלוסיית ",
+        Names1[str_detect(Names1, input$AdjustPopBy0)] %>% str_extract("בני.*"),
+        ")"
+      )
+    }
+    
+    db <- Pop_and_Physical2021
+    if ((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000")) {
+      if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+        db <- db %>% 
+          mutate(y0 = as.numeric(.data[[input$yaxis01]]) / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+      } else {
+        db <- db %>% 
+          mutate(y0 = as.numeric(.data[[input$yaxis01]]) / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy0]]/100) * 1000) 
+      }
+    } else {
+      db <- db %>% mutate(y0 = as.numeric(.data[[input$yaxis01]]))
+    }
+    
+    
+    #Values <- Pop_and_Physical2021[, Fill1] %>% pull(1)
+    Values <- db$y0
+    Pretty1 <- pretty(Values, n = 20)
+    Step <- Pretty1[2] - Pretty1[1]
+    Min <- Pretty1[1]
+    Max <- Pretty1[length(Pretty1)]
+    
+    updateSliderInput(session, "LimitColors0", min = Min, max = Max, value = c(Min, Max))
+    updateSliderInput(session, "FilterColors0", min = Min, max = Max, value = c(Min, Max))
+    
+    FillColorByrv0$SelectedVarORG = Fill1
+    FillColorByrv0$SelectedVar = Fill1
+    FillColorByrv0$Range1 = c(Min, Max)
+  })
+  # pal0 (color pallete) ----
+  pal0 <- reactive({
+    CC1 <- input$ColorPallete0
+    Fill1 <- Map0Data()$y0
+    #Fill2 <- t12Names %>% filter(NamesHebrew == Fill1) %>% pull(Names)
+    
+    domain1 <- Map0Data()$y0
+    if ((FillColorByrv0$SelectedVarORG == input$yaxis01)) {
+      SelectedVar <- FilterByVar1rv$SelectedVar
+      
+      if (!between(input$LimitColors0[1], FillColorByrv0$Range1[1], FillColorByrv0$Range1[2]) ) {Min1 = FillColorByrv0$Range1[1]} else {Min1 = input$LimitColors0[1]}
+      if (!between(input$LimitColors0[2], FillColorByrv0$Range1[1], FillColorByrv0$Range1[2]) ) {Max1 = FillColorByrv0$Range1[2]} else {Max1 = input$LimitColors0[2]}
+      domain1[domain1 < Min1] = Min1
+      domain1[domain1 > Max1] = Max1
+    } 
+    
+    ColorPallete1 <- case_when(
+      CC1 == "לבן-כחול" ~ c("white", "blue"),
+      CC1 == "כחול-לבן" ~ c("white", "blue"),
+      CC1 == "אדום-לבן" ~ c("white", "red"),
+      CC1 == "לבן-אדום" ~ c("white", "red"),
+      CC1 == "כחול-אדום"~ c("red", "blue"),
+      CC1 ==  "אדום-כחול" ~ c("red", "blue"),
+      #CC1 == "כחול-לבן" ~ c("red", "white"),
+      TRUE ~ c("white", "black")
+    )
+    
+    Rev1 <- case_when(
+      CC1 == "לבן-כחול" ~ FALSE,
+      CC1 == "כחול-לבן" ~ TRUE,
+      CC1 == "אדום-לבן" ~ TRUE,
+      CC1 == "לבן-אדום" ~ FALSE,
+      CC1 == "כחול-אדום"~ TRUE,
+      CC1 ==  "אדום-כחול" ~ FALSE,
+      #CC1 == "כחול-לבן" ~ c("red", "white"),
+      TRUE ~ FALSE
+    )
+    
+    colorNumeric(
+      palette = ColorPallete1,
+      na.color = "#E3D8D7",
+      reverse = Rev1,
+      domain = domain1
+    )
+    
+  })
+  
+  # Map0Data ----
+  Map0Data <- reactive({
+    
+    if (input$AdjustPopBy0 == "ללא תקנון") {
+      Metuknan = ""
+    } else if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+      Metuknan = " (מתוקנן לאוכלוסיה)"
+    } else {
+      Metuknan = paste0(
+        " (מתוקנן לאוכלוסיית ",
+        Names1[str_detect(Names1, input$AdjustPopBy0)] %>% str_extract("בני.*"),
+        ")"
+      )
+    }
+    
+    YLAB = paste0(names3 %>% filter(N3 == input$yaxis01) %>% pull(N4),
+                  ifelse((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000"),
+                         paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
+    # XLAB = paste0(names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
+    #               ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז")& !str_detect(input$xaxis1, "ל-1000"),
+    #                      paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
+    YLAB <- str_remove(YLAB, "<br>$")
+    YLAB <- str_remove(YLAB, "^:")
+    YLAB <- str_replace_all(YLAB, "<br>", " ")
+    
+    db <- Pop_and_Physical2021 %>% 
+      filter(`שם הרשות` %in% input$towns) %>% 
+      filter(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`>= as.numeric(input$TownSizeSlider[1]), `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`<= as.numeric(input$TownSizeSlider[2])) %>% 
+      filter( `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` >= input$Eshkol[1],  `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` <= input$Eshkol[2]) %>% 
+      filter(`דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` >= input$Coalition[1], `דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` <= input$Coalition[2]) %>% 
+      filter(`דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` >= input$Opposition[1], `דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` <= input$Opposition[2]) %>% 
+      filter(`דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` >= input$Religious[1], `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` <= input$Religious[2]) %>% 
+      filter(`דמוגרפיה: אחוז חרדים` >= input$UltraReligious[1], `דמוגרפיה: אחוז חרדים` <= input$UltraReligious[2]) %>% 
+      filter(`דמוגרפיה: ערבים (אחוזים)` >= input$Arabs[1], `דמוגרפיה: ערבים (אחוזים)` <= input$Arabs[2])
+    # select(1, matches(paste(input$Topics, collapse = "|")))
+    
+    # if (input$size1 != "none") {
+    #   db <- db %>% mutate(s0 = .data[[input$size1]])
+    # } else {db <- db %>% mutate(s0 = "")}
+    # 
+    # if (input$color1 != "none") {
+    #   db <- db %>% mutate(c0 = .data[[input$color1]])
+    # } else {db <- db %>% mutate(c0 = "")}
+    
+    # if (input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000")) {
+    #   if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+    #     db <- db %>% 
+    #       mutate(x0 = .data[[input$xaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+    #   } else {
+    #     db <- db %>% 
+    #       mutate(x0 = .data[[input$xaxis1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy0]]/100) * 1000) 
+    #   }
+    # } else {
+    #   db <- db %>% mutate(x0 = .data[[input$xaxis1]])
+    # }
+    if ((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000")) {
+      if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+        db <- db %>% 
+          mutate(y0 = as.numeric(.data[[input$yaxis01]]) / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+      } else {
+        db <- db %>% 
+          mutate(y0 = as.numeric(.data[[input$yaxis01]]) / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy0]]/100) * 1000) 
+      }
+    } else {
+      db <- db %>% mutate(y0 = as.numeric(.data[[input$yaxis01]]))
+    }
+    
+    db <- db %>% drop_na(y0) %>% 
+      mutate(Label = paste0(`שם הרשות`))
+    
+    db <- left_join(CitiesGeom, db %>% rename(SEMEL_Y = 2) %>% mutate(SEMEL_Y = as.numeric(SEMEL_Y))) %>% 
+      drop_na(y0)
+    
+    db <- db %>%
+      mutate(Fill3 = y0) %>%
+      filter(between(Fill3, input$FilterColors0[1], input$FilterColors0[2]) | is.na(Fill3)) %>% 
+      mutate(Fill4 = case_when(
+        Fill3 < input$LimitColors0[1] ~ input$LimitColors0[1], 
+        Fill3 > input$LimitColors0[2] ~ input$LimitColors0[2],
+        TRUE ~ Fill3
+      )) %>% 
+      mutate(
+        Label = paste0(
+          "<div style='text-align: right; direction: rtl;'>",
+          `שם הרשות`, "<br>",
+          "<br><b>", YLAB, ": ", na2(y0), "</b><br><br>"
+        )
+      )
+    
+    if (!is.null(input$Map0Tooltip)) {
+      for (i in input$Map0Tooltip) {
+        db <- db %>% 
+          mutate(Label = paste0(Label, i, ": ", na2(!!sym(i)), "<br>"))
+      }
+    }
+    
+    db
+  }) # Map0Data
+  
+  # Map0 (municipalities) ----
+  
+  output$Map0 <- renderLeaflet({
+    
+    leaflet() %>%
+      addTiles() %>%
+      fitBounds(lng1 = 34.647, lat1 = 32.032, lng2 = 34.942, lat2 = 32.133)
+    
+  }) # output$Map0
+  
+  # proxy map0 ----
+  observe({
+    
+    pal <- tryCatch({pal0()},error = function(e) {
+      colorNumeric(palette = c("white", "blue"), na.color = "#E3D8D7",domain = seq(-100000,100000, length.out = nrow(filteredData())))},
+      finally = {}) 
+    
+    if (nrow(Map0Data()) > 0) {
+      
+      leafletProxy("Map0", data = Map0Data()) %>%
+        clearShapes() %>%
+        addPolygons(
+          fillColor = ~pal(Fill4), fillOpacity = 0.7,
+          opacity = 0.1, weight = 5, color = ~"black", #color = ~pal1(STAT11), color = ~"black",
+          label = ~paste(Label) %>% lapply(htmltools::HTML),
+          labelOptions = labelOptions(
+            style = list("font-weight" = "normal", padding = "3px 8px"),
+            textsize = "12px",
+            direction = "auto",
+          ))
+    }
+    
+    
+  }) # proxy map0
+  
+  
   # Map1 ----
   output$Map1 <- renderLeaflet({
     
@@ -1618,10 +1917,6 @@ server <- function(session, input, output) {
   
   map2 <- leafletProxy("Map1")
   
-  observeEvent(map2$bounds, {
-    bounds <- map2$getBounds()
-    browser()
-  })
   
   # update CitiesFocus ----
   
