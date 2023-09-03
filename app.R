@@ -9,13 +9,16 @@ library(shinyBS)
 library(leaflet)
 library(sf)
 library(scales)
-source("/srv/shiny-server/Invest/HelperFunctions.R")
+
+if (file.exists('/srv/shiny-server/Invest/HelperFunctions.R')) {
+  source("/srv/shiny-server/Invest/HelperFunctions.R")
+} else {library(HovavLoadPackage5)}
 
 load("StatAreas.rda")
 load("MunicipalData.rda")
-load("CityGeoms.rda")
-load("SDGdata.rda")
-CitiesGeom <- CitiesGeom %>% mutate(SHEM_YISH = iconv(SHEM_YISH, to = "UTF-8", sub = "byte"))
+
+
+
 
 Pop_and_Physical2021 <- Pop_and_Physical2021 %>% select(-"כללי: שם ועדת תכנון ובנייה")
 Pop_and_Physical2021 <- Pop_and_Physical2021 %>% 
@@ -313,7 +316,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     hr(),
                                     p(),p(),p(),p(),p(),p(),p(),p(),
                                     h2("- "),
-                                    h3("זמן הטעינה של המפה ואחר-כך של הופעת פוליגוני הצבע עליה, עשוי להיות ארוך"),
+                                    actionButton("LoadMap0", label = HTML("<b><span style='font-size:18px;color:red'>Click to load data</span></b>")),
+                                    #h3("זמן הטעינה של המפה ואחר-כך של הופעת פוליגוני הצבע עליה, עשוי להיות ארוך"),
                                     sidebarLayout(
                                       sidebarPanel(
                                         h3(" "),
@@ -546,7 +550,9 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     hr(),
                                     p(),p(),p(),p(),p(),p(),p(),p(),
                                     h2("מידע שקיים ברזולוציה של אזורים סטטיסטיים"),
-                                    h3("אזורים סטטיסטיים מכילים בדרך כלל מספר רחובות בתוך ישוב.    זמן הטעינה של המפה ואחר-כך של הופעת פוליגוני הצבע עליה, עשוי להיות ארוך"),
+                                    #h3("אזורים סטטיסטיים מכילים בדרך כלל מספר רחובות בתוך ישוב.    זמן הטעינה של המפה ואחר-כך של הופעת פוליגוני הצבע עליה, עשוי להיות ארוך"),
+                                    h3("אזורים סטטיסטיים מכילים בדרך כלל מספר רחובות בתוך ישוב"),
+                                    actionButton("LoadMap1", label = HTML("<b><span style='font-size:18px;color:red'>Click to load data</span></b>")),
                                     sidebarLayout(
                                       sidebarPanel(
                                         h3(" "),
@@ -687,6 +693,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     hr(),
                                     p(),p(),p(),p(),
                                     hr(),
+                                    actionButton("LoadSDG", label = HTML("<b><span style='font-size:18px;color:red'>Click to load data</span></b>")),
                                     HTML("<div class='rtl'><span class='emphasis'>עמידת ישראל ביעדים לפיתוח בר קיימא SDG</div>"),
                                     HTML("<div class='rtl'><span class='formatted-text'>17 היעדים לפיתוח בר-קיימה (Goals Development Sustainable – SDGs) הם תוכנית פעולה של האו\"ם
                                    עבור כל מדינות העולם לקידום צמיחה ושגשוג לצד שמירה על כדור הארץ.</div>"),
@@ -1555,6 +1562,9 @@ server <- function(session, input, output) {
   # statistical areas map server part ----
   # filteredData ----
   filteredData <- reactive({
+    
+    if (input$LoadMap1 >0 ) {updateButton(session, "LoadMap1", label = "Loading Data")}
+    
     Fill1 <- input$FillColorBy
     Fill2 <- t12Names %>% filter(NamesHebrew == Fill1) %>% pull(Names)
     
@@ -1808,122 +1818,134 @@ server <- function(session, input, output) {
   })
   
   # Map0Data ----
+  
   Map0Data <- reactive({
     
-    if (input$AdjustPopBy0 == "ללא תקנון") {
-      Metuknan = ""
-    } else if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
-      Metuknan = " (מתוקנן לאוכלוסיה)"
+    if (input$LoadMap0 == 0) {
+      tibble()
     } else {
-      Metuknan = paste0(
-        " (מתוקנן לאוכלוסיית ",
-        Names1[str_detect(Names1, input$AdjustPopBy0)] %>% str_extract("בני.*"),
-        ")"
-      )
-    }
-    
-    YLAB = paste0(names3 %>% filter(N3 == input$yaxis01) %>% pull(N4),
-                  ifelse((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000"),
-                         paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
-    # XLAB = paste0(names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
-    #               ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז")& !str_detect(input$xaxis1, "ל-1000"),
-    #                      paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
-    YLAB <- str_remove(YLAB, "<br>$")
-    YLAB <- str_remove(YLAB, "^:")
-    YLAB <- str_replace_all(YLAB, "<br>", " ")
-    
-    db <- Pop_and_Physical2021 %>% 
-      filter(`שם הרשות` %in% input$towns) %>% 
-      filter(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`>= as.numeric(input$TownSizeSlider[1]), `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`<= as.numeric(input$TownSizeSlider[2])) %>% 
-      filter( `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` >= input$Eshkol[1],  `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` <= input$Eshkol[2]) %>% 
-      filter(`דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` >= input$Coalition[1], `דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` <= input$Coalition[2]) %>% 
-      filter(`דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` >= input$Opposition[1], `דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` <= input$Opposition[2]) %>% 
-      filter(`דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` >= input$Religious[1], `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` <= input$Religious[2]) %>% 
-      filter(`דמוגרפיה: אחוז חרדים` >= input$UltraReligious[1], `דמוגרפיה: אחוז חרדים` <= input$UltraReligious[2]) %>% 
-      filter(`דמוגרפיה: ערבים (אחוזים)` >= input$Arabs[1], `דמוגרפיה: ערבים (אחוזים)` <= input$Arabs[2])
-    # select(1, matches(paste(input$Topics, collapse = "|")))
-    
-    # if (input$size1 != "none") {
-    #   db <- db %>% mutate(s0 = .data[[input$size1]])
-    # } else {db <- db %>% mutate(s0 = "")}
-    # 
-    # if (input$color1 != "none") {
-    #   db <- db %>% mutate(c0 = .data[[input$color1]])
-    # } else {db <- db %>% mutate(c0 = "")}
-    
-    # if (input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000")) {
-    #   if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
-    #     db <- db %>% 
-    #       mutate(x0 = .data[[input$xaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
-    #   } else {
-    #     db <- db %>% 
-    #       mutate(x0 = .data[[input$xaxis1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy0]]/100) * 1000) 
-    #   }
-    # } else {
-    #   db <- db %>% mutate(x0 = .data[[input$xaxis1]])
-    # }
-    if ((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000")) {
-      if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
-        db <- db %>% 
-          mutate(y0 = as.numeric(.data[[input$yaxis01]]) / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+      
+      updateButton(session, "LoadMap0", label = "Loading Data")
+      if (input$AdjustPopBy0 == "ללא תקנון") {
+        Metuknan = ""
+      } else if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+        Metuknan = " (מתוקנן לאוכלוסיה)"
       } else {
-        db <- db %>% 
-          mutate(y0 = as.numeric(.data[[input$yaxis01]]) / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy0]]/100) * 1000) 
-      }
-    } else {
-      db <- db %>% mutate(y0 = as.numeric(.data[[input$yaxis01]]))
-    }
-    
-    db <- db %>% drop_na(y0) %>% 
-      mutate(Label = paste0(`שם הרשות`))
-    
-    db <- left_join(CitiesGeom, db %>% rename(SEMEL_Y = 2) %>% mutate(SEMEL_Y = as.numeric(SEMEL_Y))) %>% 
-      drop_na(y0)
-    
-    db <- db %>%
-      mutate(Fill3 = y0) %>%
-      filter(between(Fill3, input$FilterColors0[1], input$FilterColors0[2]) | is.na(Fill3)) %>% 
-      mutate(Fill4 = case_when(
-        Fill3 < input$LimitColors0[1] ~ input$LimitColors0[1], 
-        Fill3 > input$LimitColors0[2] ~ input$LimitColors0[2],
-        TRUE ~ Fill3
-      )) %>% 
-      mutate(
-        Label = paste0(
-          "<div style='text-align: right; direction: rtl;'>",
-          `שם הרשות`, "<br>",
-          "<br><b>", YLAB, ": ", na2(y0), "</b><br><br>"
+        Metuknan = paste0(
+          " (מתוקנן לאוכלוסיית ",
+          Names1[str_detect(Names1, input$AdjustPopBy0)] %>% str_extract("בני.*"),
+          ")"
         )
-      )
-    
-    if (!is.null(input$Map0Tooltip)) {
-      for (i in input$Map0Tooltip) {
-        db <- db %>% 
-          mutate(Label = paste0(Label, i, ": ", na2(!!sym(i)), "<br>"))
       }
-    }
-    
-    db
+      
+      YLAB = paste0(names3 %>% filter(N3 == input$yaxis01) %>% pull(N4),
+                    ifelse((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000"),
+                           paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
+      # XLAB = paste0(names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
+      #               ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז")& !str_detect(input$xaxis1, "ל-1000"),
+      #                      paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
+      YLAB <- str_remove(YLAB, "<br>$")
+      YLAB <- str_remove(YLAB, "^:")
+      YLAB <- str_replace_all(YLAB, "<br>", " ")
+      
+      db <- Pop_and_Physical2021 %>% 
+        filter(`שם הרשות` %in% input$towns) %>% 
+        filter(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`>= as.numeric(input$TownSizeSlider[1]), `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`<= as.numeric(input$TownSizeSlider[2])) %>% 
+        filter( `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` >= input$Eshkol[1],  `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` <= input$Eshkol[2]) %>% 
+        filter(`דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` >= input$Coalition[1], `דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` <= input$Coalition[2]) %>% 
+        filter(`דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` >= input$Opposition[1], `דמוגרפיה: אחוז הצבעה למפלגות האופוזיציה, בחירות לכנסת 25` <= input$Opposition[2]) %>% 
+        filter(`דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` >= input$Religious[1], `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` <= input$Religious[2]) %>% 
+        filter(`דמוגרפיה: אחוז חרדים` >= input$UltraReligious[1], `דמוגרפיה: אחוז חרדים` <= input$UltraReligious[2]) %>% 
+        filter(`דמוגרפיה: ערבים (אחוזים)` >= input$Arabs[1], `דמוגרפיה: ערבים (אחוזים)` <= input$Arabs[2])
+      # select(1, matches(paste(input$Topics, collapse = "|")))
+      
+      # if (input$size1 != "none") {
+      #   db <- db %>% mutate(s0 = .data[[input$size1]])
+      # } else {db <- db %>% mutate(s0 = "")}
+      # 
+      # if (input$color1 != "none") {
+      #   db <- db %>% mutate(c0 = .data[[input$color1]])
+      # } else {db <- db %>% mutate(c0 = "")}
+      
+      # if (input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז") & !str_detect(input$xaxis1, "ל-1000")) {
+      #   if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+      #     db <- db %>% 
+      #       mutate(x0 = .data[[input$xaxis1]] / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+      #   } else {
+      #     db <- db %>% 
+      #       mutate(x0 = .data[[input$xaxis1]] / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy0]]/100) * 1000) 
+      #   }
+      # } else {
+      #   db <- db %>% mutate(x0 = .data[[input$xaxis1]])
+      # }
+      if ((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000")) {
+        if (input$AdjustPopBy0 == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה") {
+          db <- db %>% 
+            mutate(y0 = as.numeric(.data[[input$yaxis01]]) / .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * 1000) 
+        } else {
+          db <- db %>% 
+            mutate(y0 = as.numeric(.data[[input$yaxis01]]) / ( .data[["דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" ]] * .data[[input$AdjustPopBy0]]/100) * 1000) 
+        }
+      } else {
+        db <- db %>% mutate(y0 = as.numeric(.data[[input$yaxis01]]))
+      }
+      
+      db <- db %>% drop_na(y0) %>% 
+        mutate(Label = paste0(`שם הרשות`))
+      
+      db <- left_join(CitiesGeom, db %>% rename(SEMEL_Y = 2) %>% mutate(SEMEL_Y = as.numeric(SEMEL_Y))) %>% 
+        drop_na(y0)
+      
+      db <- db %>%
+        mutate(Fill3 = y0) %>%
+        filter(between(Fill3, input$FilterColors0[1], input$FilterColors0[2]) | is.na(Fill3)) %>% 
+        mutate(Fill4 = case_when(
+          Fill3 < input$LimitColors0[1] ~ input$LimitColors0[1], 
+          Fill3 > input$LimitColors0[2] ~ input$LimitColors0[2],
+          TRUE ~ Fill3
+        )) %>% 
+        mutate(
+          Label = paste0(
+            "<div style='text-align: right; direction: rtl;'>",
+            `שם הרשות`, "<br>",
+            "<br><b>", YLAB, ": ", na2(y0), "</b><br><br>"
+          )
+        )
+      
+      if (!is.null(input$Map0Tooltip)) {
+        for (i in input$Map0Tooltip) {
+          db <- db %>% 
+            mutate(Label = paste0(Label, i, ": ", na2(!!sym(i)), "<br>"))
+        }
+      }
+      
+      db
+    } # end if input$LoadMap0 == 0
   }) # Map0Data
   
   # Map0 (municipalities) ----
   
   output$Map0 <- renderLeaflet({
-    
-    leaflet() %>%
-      addTiles() %>%
-      fitBounds(lng1 = 34.647, lat1 = 32.032, lng2 = 34.942, lat2 = 32.133)
+    if (input$LoadMap0 > 0) {
+      leaflet() %>%
+        addTiles() %>%
+        fitBounds(lng1 = 34.647, lat1 = 32.032, lng2 = 34.942, lat2 = 32.133)
+    } else {
+      leaflet()
+    }
     
   }) # output$Map0
   
   # proxy map0 ----
   observe({
     
+    
+    
     pal <- tryCatch({pal0()},error = function(e) {
       colorNumeric(palette = c("white", "blue"), na.color = "#E3D8D7",domain = seq(-100000,100000, length.out = nrow(filteredData())))},
       finally = {}) 
     
-    if (nrow(Map0Data()) > 0) {
+    if (nrow(Map0Data()) > 0 & input$LoadMap0 > 0) {
       
       leafletProxy("Map0", data = Map0Data()) %>%
         clearShapes() %>%
@@ -1936,6 +1958,8 @@ server <- function(session, input, output) {
             textsize = "12px",
             direction = "auto",
           ))
+      
+      updateButton(session, "LoadMap0", label = "Ready")
     }
     
     
@@ -1943,35 +1967,54 @@ server <- function(session, input, output) {
   
   
   # Map1 ----
+  
+  observeEvent(input$LoadMap1, {
+    if (input$LoadMap1 == 1) {
+      load("CityGeoms.rda")
+      CitiesGeom <- CitiesGeom %>% mutate(SHEM_YISH = iconv(SHEM_YISH, to = "UTF-8", sub = "byte"))
+    }
+  })
+  
   output$Map1 <- renderLeaflet({
-    
-    leaflet() %>%
-      addTiles() %>%
-      fitBounds(lng1 = 34.747, lat1 = 32.032, lng2 = 34.842, lat2 = 32.133) 
+    if (input$LoadMap1 == 0) {
+      leaflet()
+    } else {
+      leaflet() %>%
+        addTiles() %>%
+        fitBounds(lng1 = 34.747, lat1 = 32.032, lng2 = 34.842, lat2 = 32.133) 
+    }
     
   }) # output$Map1
   
   # proxy map ----
   observe({
-    pal <- tryCatch({pal1()},error = function(e) {
-      colorNumeric(palette = c("white", "blue"), na.color = "#E3D8D7",domain = seq(-100000,100000, length.out = nrow(filteredData())))},
-      finally = {}) 
     
-    leafletProxy("Map1", data = filteredData()) %>%
-      clearShapes() %>%
-      addPolygons(
-        fillColor = ~pal(Fill4), fillOpacity = 0.7,
-        opacity = 0.1, weight = 5, color = ~"black", #color = ~pal1(STAT11), color = ~"black",
-        label = ~paste(Label) %>% lapply(htmltools::HTML),
-        labelOptions = labelOptions(
-          style = list("font-weight" = "normal", padding = "3px 8px"),
-          textsize = "12px",
-          direction = "auto",
-        ))
+    if (input$LoadMap1 > 0) {
+      pal <- tryCatch({pal1()},error = function(e) {
+        colorNumeric(palette = c("white", "blue"), na.color = "#E3D8D7",domain = seq(-100000,100000, length.out = nrow(filteredData())))},
+        finally = {}) 
+      
+      leafletProxy("Map1", data = filteredData()) %>%
+        clearShapes() %>%
+        addPolygons(
+          fillColor = ~pal(Fill4), fillOpacity = 0.7,
+          opacity = 0.1, weight = 5, color = ~"black", #color = ~pal1(STAT11), color = ~"black",
+          label = ~paste(Label) %>% lapply(htmltools::HTML),
+          labelOptions = labelOptions(
+            style = list("font-weight" = "normal", padding = "3px 8px"),
+            textsize = "12px",
+            direction = "auto",
+          ))
+      
+      updateButton(session, "LoadMap1", label = "Ready")
+      
+    }
+    
+    
     
   })
   
-  map2 <- leafletProxy("Map1")
+  #map2 <- leafletProxy("Map1")
   
   
   # update CitiesFocus ----
@@ -2072,162 +2115,176 @@ server <- function(session, input, output) {
   })
   
   # SDGplot ----
+  
+  observeEvent(input$LoadSDG, {
+    if (input$LoadSDG == 1) {
+      load("SDGdata.rda")
+      updateButton(session, "LoadSDG", label = "Ready")
+    }
+  })
+  
   output$SDGplot <- renderUI({
-    
-    p <- ggplotly(
+    if (input$LoadSDG > 0) {
+      p <- ggplotly(
+        
+        SDGdata %>% 
+          mutate(Gn = parse_number(Goal), G2 = str_remove(Goal, paste0(Gn, "\\. "))) %>% 
+          mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
+          group_by(Gn, Goal, G2, G3) %>% 
+          count(achieved) %>% 
+          mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
+          mutate(n2 = n / sum(n)) %>% 
+          mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
+          #pivot_longer(cols = achieved) %>% View
+          eggplot(aes(x = n2, y = reorder((Goal), -Gn), fill = achieved2, text = paste0(G3, "<br><br>", n3))) +
+          geom_col() +
+          geom_text(data = . %>% group_by((Goal)) %>% slice(1) %>% ungroup %>% mutate(n2 = 0.5), 
+                    aes(label = G3), color = "white", hjust = 1, size = 4) +
+          scale_fill_manual(values = c("blue", "lightblue", "red")) +
+          theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.position = "bottom",
+            plot.caption = element_text(hjust = 1)
+          ) +
+          scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
+          labs(fill = NULL, y = NULL, 
+               x = ("אחוז מהמדדים של היעד"),
+               title = ("SDG עמידת ישראל ביעדים לפיתוח בר קיימא "),
+               caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
+          ) +
+          guides(fill = guide_legend(reverse = TRUE)),
+        
+        tooltip = "text", height = 800, width = 1000
+      ) %>% config(displayModeBar = FALSE)
       
-      SDGdata %>% 
-        mutate(Gn = parse_number(Goal), G2 = str_remove(Goal, paste0(Gn, "\\. "))) %>% 
-        mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
-        group_by(Gn, Goal, G2, G3) %>% 
-        count(achieved) %>% 
-        mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
-        mutate(n2 = n / sum(n)) %>% 
-        mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
-        #pivot_longer(cols = achieved) %>% View
-        eggplot(aes(x = n2, y = reorder((Goal), -Gn), fill = achieved2, text = paste0(G3, "<br><br>", n3))) +
-        geom_col() +
-        geom_text(data = . %>% group_by((Goal)) %>% slice(1) %>% ungroup %>% mutate(n2 = 0.5), 
-                  aes(label = G3), color = "white", hjust = 1, size = 4) +
-        scale_fill_manual(values = c("blue", "lightblue", "red")) +
-        theme(
-          axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          legend.position = "bottom",
-          plot.caption = element_text(hjust = 1)
-        ) +
-        scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
-        labs(fill = NULL, y = NULL, 
-             x = ("אחוז מהמדדים של היעד"),
-             title = ("SDG עמידת ישראל ביעדים לפיתוח בר קיימא "),
-             caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
-        ) +
-        guides(fill = guide_legend(reverse = TRUE)),
-      
-      tooltip = "text", height = 800, width = 1000
-    ) %>% config(displayModeBar = FALSE)
-    
-    renderPlotly(p)
+      renderPlotly(p) } else {
+        renderPlotly(ggplotly(eggplot()))
+      }
   })
   
   # SDGplot2 ----
   output$SDGplot2 <- renderUI({
     
-    p <- ggplotly(
-      SDGdata %>% 
-        filter(Goal == input$SDGtarget) %>% 
-        #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
-        mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
-        group_by(Gn, Goal, G2, G3) %>% 
-        count(achieved, target) %>% 
-        mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
-        mutate(fill1 = case_when(achieved2 == "לא הושג" ~ "red", 
-                                 achieved2 == "קרוב להשגה" ~ "lightblue",
-                                 achieved2 == "הושג היעד" ~ "blue")) %>% 
-        group_by(target) %>% 
-        mutate(n2 = n / sum(n)) %>% 
-        mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
-        eggplot(aes(x = n2, y = reorder((target), -Gn), fill = fill1, 
-                    text = paste0(G3, "<br><br>", n3))) +
-        geom_col() +
-        geom_text(data = . %>% group_by((target)) %>% ungroup %>% mutate(n2 = 0.5), 
-                  aes(label = (target)), color = "white", hjust = 1, size = 4) +
-        #scale_fill_manual(values = c("blue", "lightblue", "red")) +
-        scale_fill_identity() +
-        theme(
-          axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          legend.position = "bottom",
-          plot.caption = element_text(hjust = 1),
-          strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
-                                                          filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
-        ) +
-        scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
-        labs(fill = NULL, y = NULL, 
-             x = ("אחוז מהמדדים של המטרה"),
-             #title = ("עמידת ישראל ביעדים לפיתוח בר קיימא SDG"),
-             caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
-             
-        ) +
-        guides(fill = guide_legend(reverse = TRUE)) +
-        facet_wrap(~(G3), scales = "free_y"),
-      tooltip = "text", height = 800, width = 1000
-    ) %>% config(displayModeBar = FALSE)
-    
-    renderPlotly(p)
+    if (input$LoadSDG > 0) {
+      p <- ggplotly(
+        SDGdata %>% 
+          filter(Goal == input$SDGtarget) %>% 
+          #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
+          mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
+          group_by(Gn, Goal, G2, G3) %>% 
+          count(achieved, target) %>% 
+          mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
+          mutate(fill1 = case_when(achieved2 == "לא הושג" ~ "red", 
+                                   achieved2 == "קרוב להשגה" ~ "lightblue",
+                                   achieved2 == "הושג היעד" ~ "blue")) %>% 
+          group_by(target) %>% 
+          mutate(n2 = n / sum(n)) %>% 
+          mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
+          eggplot(aes(x = n2, y = reorder((target), -Gn), fill = fill1, 
+                      text = paste0(G3, "<br><br>", n3))) +
+          geom_col() +
+          geom_text(data = . %>% group_by((target)) %>% ungroup %>% mutate(n2 = 0.5), 
+                    aes(label = (target)), color = "white", hjust = 1, size = 4) +
+          #scale_fill_manual(values = c("blue", "lightblue", "red")) +
+          scale_fill_identity() +
+          theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.position = "bottom",
+            plot.caption = element_text(hjust = 1),
+            strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
+                                                            filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
+          ) +
+          scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
+          labs(fill = NULL, y = NULL, 
+               x = ("אחוז מהמדדים של המטרה"),
+               #title = ("עמידת ישראל ביעדים לפיתוח בר קיימא SDG"),
+               caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
+               
+          ) +
+          guides(fill = guide_legend(reverse = TRUE)) +
+          facet_wrap(~(G3), scales = "free_y"),
+        tooltip = "text", height = 800, width = 1000
+      ) %>% config(displayModeBar = FALSE)
+      
+      renderPlotly(p) 
+    } else {renderPlotly(ggplotly(eggplot())) }
   })
   
   # SDGplot3 ----
   output$SDGplot3 <- renderUI({
     
-    p <- ggplotly(
-      SDGdata %>% 
-        filter(Goal == input$SDGtarget) %>% 
-        #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
-        mutate(measure = str_remove(measure, "[1-9]$")) %>% 
-        mutate(tn = str_replace_all(tn, "a", "1")) %>% 
-        mutate(tn = str_replace_all(tn, "b", "2")) %>% 
-        mutate(tn = str_replace_all(tn, "c", "3")) %>% 
-        mutate(tn = parse_number(tn)) %>% 
-        mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
-        mutate(
-          normalized = case_when(
-            achieved == "הושג היעד" & estimate > bar ~ 1 + (estimate - bar) / bar,
-            achieved == "הושג היעד" & estimate <= bar ~ 1 -(estimate - bar) / bar,
-            achieved != "הושג היעד" & estimate > bar ~ 1 - (estimate - bar) / bar,
-            achieved != "הושג היעד" & estimate <= bar ~ 1 - (bar - estimate) / bar,
-            
-          )
-        ) %>% 
-        #group_by(Gn, Goal, G2, G3) %>% 
-        #count(achieved, target) %>% 
-        mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
-        mutate(fill1 = case_when(achieved2 == "לא הושג" ~ "red", 
-                                 achieved2 == "קרוב להשגה" ~ "lightblue",
-                                 achieved2 == "הושג היעד" ~ "blue")) %>% 
-        group_by(target) %>% 
-        #mutate(n2 = n / sum(n)) %>% 
-        #mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
-        arrange(tn) %>% 
-        mutate(text1 = paste0(target, "<br><br><b>", measure, "</b><br>",
-                              "ערך מטרה:         <b>", bar, "</b><br>",
-                              "ערך עדכני לישראל: <b>", estimate, "</b><br>",
-                              "יחידת מידה: ", measure_type, "<br>",
-                              "ציון מנורמל: ", round(normalized, 2), "<br>"
-        )) %>% 
-        #pivot_longer(cols = achieved) %>% View
-        eggplot(aes(x = normalized, y = reorder((measure), -tn), color = fill1, 
-                    text = text1)) +
-        geom_vline(xintercept = 1, linetype = 3, color = "black") +
-        geom_point() +
-        geom_text(aes(label = paste0(measure, "<br><br>")), size = 3) +
-        #geom_text(data = . %>% filter(normalized <  1), aes(label = measure), size = 3) +
-        #geom_col() +
-        #geom_text(data = . %>% group_by((target)) %>% ungroup %>% mutate(n2 = 0.5), 
-        #          aes(label = (target)), color = "white", hjust = 1, size = 3) +
-        #scale_fill_manual(values = c("blue", "lightblue", "red")) +
-        scale_color_identity() +
-        theme(
-          axis.text.y = element_blank(),
-          axis.ticks.y = element_blank(),
-          legend.position = "none",
-          plot.caption = element_text(hjust = 1),
-          strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
-                                                          filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
-        ) +
-        #scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
-        labs(fill = NULL, y = NULL, 
-             x = ("ערך עמידה במדד - ציון מנורמל"),
-             #title = ("עמידת ישראל ביעדים לפיתוח בר קיימא SDG"),
-             caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
-             
-        ) +
-        guides(fill = guide_legend(reverse = TRUE)) +
-        facet_wrap(~(G3), scales = "free_y"),
-      tooltip = "text", height = 800, width = 1000, dynamicTicks = TRUE
-    ) %>% config(displayModeBar = FALSE)
-    
-    renderPlotly(p)
+    if (input$LoadSDG > 0) {
+      p <- ggplotly(
+        SDGdata %>% 
+          filter(Goal == input$SDGtarget) %>% 
+          #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
+          mutate(measure = str_remove(measure, "[1-9]$")) %>% 
+          mutate(tn = str_replace_all(tn, "a", "1")) %>% 
+          mutate(tn = str_replace_all(tn, "b", "2")) %>% 
+          mutate(tn = str_replace_all(tn, "c", "3")) %>% 
+          mutate(tn = parse_number(tn)) %>% 
+          mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
+          mutate(
+            normalized = case_when(
+              achieved == "הושג היעד" & estimate > bar ~ 1 + (estimate - bar) / bar,
+              achieved == "הושג היעד" & estimate <= bar ~ 1 -(estimate - bar) / bar,
+              achieved != "הושג היעד" & estimate > bar ~ 1 - (estimate - bar) / bar,
+              achieved != "הושג היעד" & estimate <= bar ~ 1 - (bar - estimate) / bar,
+              
+            )
+          ) %>% 
+          #group_by(Gn, Goal, G2, G3) %>% 
+          #count(achieved, target) %>% 
+          mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
+          mutate(fill1 = case_when(achieved2 == "לא הושג" ~ "red", 
+                                   achieved2 == "קרוב להשגה" ~ "lightblue",
+                                   achieved2 == "הושג היעד" ~ "blue")) %>% 
+          group_by(target) %>% 
+          #mutate(n2 = n / sum(n)) %>% 
+          #mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
+          arrange(tn) %>% 
+          mutate(text1 = paste0(target, "<br><br><b>", measure, "</b><br>",
+                                "ערך מטרה:         <b>", bar, "</b><br>",
+                                "ערך עדכני לישראל: <b>", estimate, "</b><br>",
+                                "יחידת מידה: ", measure_type, "<br>",
+                                "ציון מנורמל: ", round(normalized, 2), "<br>"
+          )) %>% 
+          #pivot_longer(cols = achieved) %>% View
+          eggplot(aes(x = normalized, y = reorder((measure), -tn), color = fill1, 
+                      text = text1)) +
+          geom_vline(xintercept = 1, linetype = 3, color = "black") +
+          geom_point() +
+          geom_text(aes(label = paste0(measure, "<br><br>")), size = 3) +
+          #geom_text(data = . %>% filter(normalized <  1), aes(label = measure), size = 3) +
+          #geom_col() +
+          #geom_text(data = . %>% group_by((target)) %>% ungroup %>% mutate(n2 = 0.5), 
+          #          aes(label = (target)), color = "white", hjust = 1, size = 3) +
+          #scale_fill_manual(values = c("blue", "lightblue", "red")) +
+          scale_color_identity() +
+          theme(
+            axis.text.y = element_blank(),
+            axis.ticks.y = element_blank(),
+            legend.position = "none",
+            plot.caption = element_text(hjust = 1),
+            strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
+                                                            filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
+          ) +
+          #scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
+          labs(fill = NULL, y = NULL, 
+               x = ("ערך עמידה במדד - ציון מנורמל"),
+               #title = ("עמידת ישראל ביעדים לפיתוח בר קיימא SDG"),
+               caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
+               
+          ) +
+          guides(fill = guide_legend(reverse = TRUE)) +
+          facet_wrap(~(G3), scales = "free_y"),
+        tooltip = "text", height = 800, width = 1000, dynamicTicks = TRUE
+      ) %>% config(displayModeBar = FALSE)
+      
+      renderPlotly(p)
+    } else {renderPlotly(ggplotly(eggplot())) }
   })
   
 } # server
