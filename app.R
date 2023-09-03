@@ -9,6 +9,7 @@ library(shinyBS)
 library(leaflet)
 library(sf)
 library(scales)
+source("/srv/shiny-server/Invest/HelperFunctions.R")
 
 load("StatAreas.rda")
 load("MunicipalData.rda")
