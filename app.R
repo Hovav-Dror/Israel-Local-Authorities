@@ -13,6 +13,7 @@ library(scales)
 load("StatAreas.rda")
 load("MunicipalData.rda")
 load("CityGeoms.rda")
+load("SDGdata.rda")
 CitiesGeom <- CitiesGeom %>% mutate(SHEM_YISH = iconv(SHEM_YISH, to = "UTF-8", sub = "byte"))
 
 Pop_and_Physical2021 <- Pop_and_Physical2021 %>% select(-"כללי: שם ועדת תכנון ובנייה")
@@ -99,7 +100,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 #tags$head(includeHTML(("google-analytics.html"))),
                 #tags$style(type="text/css", "body {padding-top: 70px;}"),
                 #navbarPage("קובץ רשויות מקומיות ונתוני אזורים סטטיסטיים", id = "NavBar", position = "fixed-top", selected = "נתוני 2021",
-                navbarPage("קובץ רשויות מקומיות ונתוני אזורים סטטיסטיים", id = "NavBar", position = "fixed-top", selected = "הקדמה",
+                navbarPage("קובץ המחשת נתוני למ\"ס", id = "NavBar", position = "fixed-top", selected = "הקדמה",
                            tabPanel("הקדמה",
                                     fluidPage(lang = "he",
                                               tags$style(
@@ -137,6 +138,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                               HTML("<div class='rtl'><span class='formatted-text'>(חוץ מזה פה ושם מוסיף נתונים מקבצי למס אחרים או מקורות נוספים, ואז מידע יופיע בצד בהערות)</div>"),
                                               p(),
                                               HTML("<div class='rtl'><span class='formatted-text'>אבל בעצם למה רק נתוני רשויות מקומיות? דחפתי פנימה עוד מאגרי נתונים, ובכלל זה גם נתונים ברזולוציה עדינה יותר מישובים - על מפת אזורים סטטיסטיים</div>"),
+                                              p(),
+                                              HTML("<div class='rtl'><span class='formatted-text'>ועם הזמן הוספתי עוד מידע מפרסומי למ\"ס, גם כשהוא לא היה לפי פילוח גאוגרפי</div>"),
                                               p(),
                                               HTML("<div class='rtl'><span class='formatted-text'>מתאים לשימוש במחשב, לא מהנייד.</div>"),
                                               HTML("<div class='rtl'><span class='formatted-text'>השרת ממוקם כאן: <a href = 'https://numbersguys.com'  target='_blank'>https://numbersguys.com</a> ותוכלו למצוא שם גם הנגשה של נתוני גמלנט, ועוד קצת.</div>"),
@@ -677,7 +680,59 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         
                                       )
                                     )
-                           )
+                           ),
+                           # tabPanel SDG targets ----
+                           tabPanel("SDG יעדי",
+                                    hr(),
+                                    p(),p(),p(),p(),
+                                    hr(),
+                                    HTML("<div class='rtl'><span class='emphasis'>עמידת ישראל ביעדים לפיתוח בר קיימא SDG</div>"),
+                                    HTML("<div class='rtl'><span class='formatted-text'>17 היעדים לפיתוח בר-קיימה (Goals Development Sustainable – SDGs) הם תוכנית פעולה של האו\"ם
+                                   עבור כל מדינות העולם לקידום צמיחה ושגשוג לצד שמירה על כדור הארץ.</div>"),
+                                    HTML("<div class='rtl'><span class='formatted-text'>המקורות כאן הם נתונים מתוך <a href = 'https://www.cbs.gov.il/he/mediarelease/DocLib/2023/286/13_23_286b.pdf' target ='_blank'>הודעה לתקשורת של הלמ\"ס</a> והם עצמם מבוססים על <a href = 'https://www.oecd-ilibrary.org/social-issues-migration-health/the-short-and-winding-road-to-2030_af4b630d-en'  target='_blank'>נתוני OECD</a></div>"),
+                                    p(),
+                                    p(),
+                                    fluidRow(
+                                      column(2),
+                                      column(8,
+                                             div(
+                                               style = "display: flex; align-items: center; justify-content: center; padding-bottom: 450px; padding-top: 0px;",
+                                               uiOutput("SDGplot"),
+                                             )),
+                                    ),
+                                    p(),
+                                    p(),
+                                    fluidRow(
+                                      column(2),
+                                      column(5,
+                                             pickerInput("SDGtarget", "בחר יעד למיקוד", choices = SDGdata %>% distinct(Gn, Goal) %>% arrange(Gn) %>% pull(Goal))
+                                      )),
+                                    p(),
+                                    p(),
+                                    fluidRow(
+                                      column(2),
+                                      column(8,
+                                             div(
+                                               style = "display: flex; align-items: center; justify-content: center; padding-bottom: 450px; padding-top: 50px;",
+                                               uiOutput("SDGplot2"),
+                                             )),
+                                    ),
+                                    p(),
+                                    p(),
+                                    fluidRow(
+                                      column(2),
+                                      column(8,
+                                             div(
+                                               style = "display: flex; align-items: center; justify-content: center; padding-bottom: 450px; padding-top: 50px;",
+                                               uiOutput("SDGplot3"),
+                                             )),
+                                    ),
+                                    p(),
+                                    p(),
+                                    hr(),
+                                    p(), p(),
+                                    
+                           ) # end tabPannel SDG targets
                 ) # navbarPage
 ) # ui
 
@@ -2015,6 +2070,164 @@ server <- function(session, input, output) {
     
   })
   
+  # SDGplot ----
+  output$SDGplot <- renderUI({
+    
+    p <- ggplotly(
+      
+      SDGdata %>% 
+        mutate(Gn = parse_number(Goal), G2 = str_remove(Goal, paste0(Gn, "\\. "))) %>% 
+        mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
+        group_by(Gn, Goal, G2, G3) %>% 
+        count(achieved) %>% 
+        mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
+        mutate(n2 = n / sum(n)) %>% 
+        mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
+        #pivot_longer(cols = achieved) %>% View
+        eggplot(aes(x = n2, y = reorder((Goal), -Gn), fill = achieved2, text = paste0(G3, "<br><br>", n3))) +
+        geom_col() +
+        geom_text(data = . %>% group_by((Goal)) %>% slice(1) %>% ungroup %>% mutate(n2 = 0.5), 
+                  aes(label = G3), color = "white", hjust = 1, size = 4) +
+        scale_fill_manual(values = c("blue", "lightblue", "red")) +
+        theme(
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "bottom",
+          plot.caption = element_text(hjust = 1)
+        ) +
+        scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
+        labs(fill = NULL, y = NULL, 
+             x = ("אחוז מהמדדים של היעד"),
+             title = ("SDG עמידת ישראל ביעדים לפיתוח בר קיימא "),
+             caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
+        ) +
+        guides(fill = guide_legend(reverse = TRUE)),
+      
+      tooltip = "text", height = 800, width = 1000
+    ) %>% config(displayModeBar = FALSE)
+    
+    renderPlotly(p)
+  })
+  
+  # SDGplot2 ----
+  output$SDGplot2 <- renderUI({
+    
+    p <- ggplotly(
+      SDGdata %>% 
+        filter(Goal == input$SDGtarget) %>% 
+        #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
+        mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
+        group_by(Gn, Goal, G2, G3) %>% 
+        count(achieved, target) %>% 
+        mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
+        mutate(fill1 = case_when(achieved2 == "לא הושג" ~ "red", 
+                                 achieved2 == "קרוב להשגה" ~ "lightblue",
+                                 achieved2 == "הושג היעד" ~ "blue")) %>% 
+        group_by(target) %>% 
+        mutate(n2 = n / sum(n)) %>% 
+        mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
+        eggplot(aes(x = n2, y = reorder((target), -Gn), fill = fill1, 
+                    text = paste0(G3, "<br><br>", n3))) +
+        geom_col() +
+        geom_text(data = . %>% group_by((target)) %>% ungroup %>% mutate(n2 = 0.5), 
+                  aes(label = (target)), color = "white", hjust = 1, size = 4) +
+        #scale_fill_manual(values = c("blue", "lightblue", "red")) +
+        scale_fill_identity() +
+        theme(
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "bottom",
+          plot.caption = element_text(hjust = 1),
+          strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
+                                                          filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
+        ) +
+        scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
+        labs(fill = NULL, y = NULL, 
+             x = ("אחוז מהמדדים של המטרה"),
+             #title = ("עמידת ישראל ביעדים לפיתוח בר קיימא SDG"),
+             caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
+             
+        ) +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        facet_wrap(~(G3), scales = "free_y"),
+      tooltip = "text", height = 800, width = 1000
+    ) %>% config(displayModeBar = FALSE)
+    
+    renderPlotly(p)
+  })
+  
+  # SDGplot3 ----
+  output$SDGplot3 <- renderUI({
+    
+    p <- ggplotly(
+      SDGdata %>% 
+        filter(Goal == input$SDGtarget) %>% 
+        #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
+        mutate(measure = str_remove(measure, "[1-9]$")) %>% 
+        mutate(tn = str_replace_all(tn, "a", "1")) %>% 
+        mutate(tn = str_replace_all(tn, "b", "2")) %>% 
+        mutate(tn = str_replace_all(tn, "c", "3")) %>% 
+        mutate(tn = parse_number(tn)) %>% 
+        mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
+        mutate(
+          normalized = case_when(
+            achieved == "הושג היעד" & estimate > bar ~ 1 + (estimate - bar) / bar,
+            achieved == "הושג היעד" & estimate <= bar ~ 1 -(estimate - bar) / bar,
+            achieved != "הושג היעד" & estimate > bar ~ 1 - (estimate - bar) / bar,
+            achieved != "הושג היעד" & estimate <= bar ~ 1 - (bar - estimate) / bar,
+            
+          )
+        ) %>% 
+        #group_by(Gn, Goal, G2, G3) %>% 
+        #count(achieved, target) %>% 
+        mutate(achieved2 = factor((achieved), levels = c(("הושג היעד"), ("קרוב להשגה"), ("לא הושג")))) %>% 
+        mutate(fill1 = case_when(achieved2 == "לא הושג" ~ "red", 
+                                 achieved2 == "קרוב להשגה" ~ "lightblue",
+                                 achieved2 == "הושג היעד" ~ "blue")) %>% 
+        group_by(target) %>% 
+        #mutate(n2 = n / sum(n)) %>% 
+        #mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
+        arrange(tn) %>% 
+        mutate(text1 = paste0(target, "<br><br><b>", measure, "</b><br>",
+                              "ערך מטרה:         <b>", bar, "</b><br>",
+                              "ערך עדכני לישראל: <b>", estimate, "</b><br>",
+                              "יחידת מידה: ", measure_type, "<br>",
+                              "ציון מנורמל: ", round(normalized, 2), "<br>"
+        )) %>% 
+        #pivot_longer(cols = achieved) %>% View
+        eggplot(aes(x = normalized, y = reorder((measure), -tn), color = fill1, 
+                    text = text1)) +
+        geom_vline(xintercept = 1, linetype = 3, color = "black") +
+        geom_point() +
+        geom_text(aes(label = paste0(measure, "<br><br>")), size = 3) +
+        #geom_text(data = . %>% filter(normalized <  1), aes(label = measure), size = 3) +
+        #geom_col() +
+        #geom_text(data = . %>% group_by((target)) %>% ungroup %>% mutate(n2 = 0.5), 
+        #          aes(label = (target)), color = "white", hjust = 1, size = 3) +
+        #scale_fill_manual(values = c("blue", "lightblue", "red")) +
+        scale_color_identity() +
+        theme(
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          legend.position = "none",
+          plot.caption = element_text(hjust = 1),
+          strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
+                                                          filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
+        ) +
+        #scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
+        labs(fill = NULL, y = NULL, 
+             x = ("ערך עמידה במדד - ציון מנורמל"),
+             #title = ("עמידת ישראל ביעדים לפיתוח בר קיימא SDG"),
+             caption = ("נתונים: הודעת למ\"ס יעדים לפיתוח בר-קיימה (SDGs) בישראל: ניתוח מרחקים מהשגת היעדים, 2023-2021")
+             
+        ) +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        facet_wrap(~(G3), scales = "free_y"),
+      tooltip = "text", height = 800, width = 1000, dynamicTicks = TRUE
+    ) %>% config(displayModeBar = FALSE)
+    
+    renderPlotly(p)
+  })
   
 } # server
 
