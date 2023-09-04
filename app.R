@@ -321,7 +321,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     sidebarLayout(
                                       sidebarPanel(
                                         h3(" "),
-                                        h3("נדרש לשנות את הבחירה פעם אחת כדי שהגרף יאותחל"),
+                                        #h3("נדרש לשנות את הבחירה פעם אחת כדי שהגרף יאותחל"),
                                         width = 2,
                                         #  ____  pickerInput FillColorBy ----
                                         tipify(
@@ -713,7 +713,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     fluidRow(
                                       column(2),
                                       column(5,
-                                             pickerInput("SDGtarget", "בחר יעד למיקוד", choices = SDGdata %>% distinct(Gn, Goal) %>% arrange(Gn) %>% pull(Goal))
+                                             pickerInput("SDGtarget", "בחר יעד למיקוד", choices = NULL)
                                       )),
                                     p(),
                                     p(),
@@ -1821,7 +1821,7 @@ server <- function(session, input, output) {
   
   Map0Data <- reactive({
     
-    if (input$LoadMap0 == 0) {
+    if (input$LoadMap0 == 0 | is.null(CitiesGeom())) {
       tibble()
     } else {
       
@@ -1893,7 +1893,7 @@ server <- function(session, input, output) {
       db <- db %>% drop_na(y0) %>% 
         mutate(Label = paste0(`שם הרשות`))
       
-      db <- left_join(CitiesGeom, db %>% rename(SEMEL_Y = 2) %>% mutate(SEMEL_Y = as.numeric(SEMEL_Y))) %>% 
+      db <- left_join(CitiesGeom(), db %>% rename(SEMEL_Y = 2) %>% mutate(SEMEL_Y = as.numeric(SEMEL_Y))) %>% 
         drop_na(y0)
       
       db <- db %>%
@@ -1938,40 +1938,42 @@ server <- function(session, input, output) {
   
   # proxy map0 ----
   observe({
-    
-    
-    
-    pal <- tryCatch({pal0()},error = function(e) {
-      colorNumeric(palette = c("white", "blue"), na.color = "#E3D8D7",domain = seq(-100000,100000, length.out = nrow(filteredData())))},
-      finally = {}) 
-    
-    if (nrow(Map0Data()) > 0 & input$LoadMap0 > 0) {
-      
-      leafletProxy("Map0", data = Map0Data()) %>%
-        clearShapes() %>%
-        addPolygons(
-          fillColor = ~pal(Fill4), fillOpacity = 0.7,
-          opacity = 0.1, weight = 5, color = ~"black", #color = ~pal1(STAT11), color = ~"black",
-          label = ~paste(Label) %>% lapply(htmltools::HTML),
-          labelOptions = labelOptions(
-            style = list("font-weight" = "normal", padding = "3px 8px"),
-            textsize = "12px",
-            direction = "auto",
-          ))
-      
-      updateButton(session, "LoadMap0", label = "Ready")
-    }
+    #browser()
+    #if (nrow(Map0Data()) > 0 & input$LoadMap0 > 0 & !is.null(CitiesGeom())) {
+    if (!is.null(Map0Data()) & !is.null(CitiesGeom())) {
+      if (nrow(Map0Data()) > 0 & input$LoadMap0 > 0) {
+        
+        pal <- tryCatch({pal0()},error = function(e) {
+          colorNumeric(palette = c("white", "blue"), na.color = "#E3D8D7",domain = seq(-100000,100000, length.out = nrow(filteredData())))},
+          finally = {}) 
+        
+        
+        leafletProxy("Map0", data = Map0Data()) %>%
+          clearShapes() %>%
+          addPolygons(
+            fillColor = ~pal(Fill4), fillOpacity = 0.7,
+            opacity = 0.1, weight = 5, color = ~"black", #color = ~pal1(STAT11), color = ~"black",
+            label = ~paste(Label) %>% lapply(htmltools::HTML),
+            labelOptions = labelOptions(
+              style = list("font-weight" = "normal", padding = "3px 8px"),
+              textsize = "12px",
+              direction = "auto",
+            ))
+        
+        updateButton(session, "LoadMap0", label = "Ready")
+      }}
     
     
   }) # proxy map0
   
   
   # Map1 ----
-  
-  observeEvent(input$LoadMap1, {
-    if (input$LoadMap1 == 1) {
+  CitiesGeom <- reactiveVal()
+  observeEvent(input$LoadMap0, {
+    if (input$LoadMap0 == 1) {
       load("CityGeoms.rda")
       CitiesGeom <- CitiesGeom %>% mutate(SHEM_YISH = iconv(SHEM_YISH, to = "UTF-8", sub = "byte"))
+      CitiesGeom(CitiesGeom)
     }
   })
   
@@ -2116,18 +2118,23 @@ server <- function(session, input, output) {
   
   # SDGplot ----
   
+  SDGloaded <- reactiveVal(FALSE)
+  SDGdata <- reactiveVal()
   observeEvent(input$LoadSDG, {
     if (input$LoadSDG == 1) {
       load("SDGdata.rda")
+      SDGdata(SDGdata)
       updateButton(session, "LoadSDG", label = "Ready")
+      updatePickerInput(session, "SDGtarget", choices = SDGdata() %>% distinct(Gn, Goal) %>% arrange(Gn) %>% pull(Goal))
+      SDGloaded(TRUE)
     }
   })
   
   output$SDGplot <- renderUI({
-    if (input$LoadSDG > 0) {
+    if (SDGloaded()) {
       p <- ggplotly(
         
-        SDGdata %>% 
+        SDGdata() %>% 
           mutate(Gn = parse_number(Goal), G2 = str_remove(Goal, paste0(Gn, "\\. "))) %>% 
           mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
           group_by(Gn, Goal, G2, G3) %>% 
@@ -2166,9 +2173,9 @@ server <- function(session, input, output) {
   # SDGplot2 ----
   output$SDGplot2 <- renderUI({
     
-    if (input$LoadSDG > 0) {
+    if (SDGloaded()) {
       p <- ggplotly(
-        SDGdata %>% 
+        SDGdata() %>% 
           filter(Goal == input$SDGtarget) %>% 
           #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
           mutate(G3 = paste0("יעד ", Gn, ": ", G2)) %>% 
@@ -2193,7 +2200,7 @@ server <- function(session, input, output) {
             axis.ticks.y = element_blank(),
             legend.position = "bottom",
             plot.caption = element_text(hjust = 1),
-            strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
+            strip.text = element_text(size = ifelse(nchar(SDGdata() %>% 
                                                             filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
           ) +
           scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
@@ -2217,7 +2224,7 @@ server <- function(session, input, output) {
     
     if (input$LoadSDG > 0) {
       p <- ggplotly(
-        SDGdata %>% 
+        SDGdata() %>% 
           filter(Goal == input$SDGtarget) %>% 
           #filter(Goal == unique(SDGdata$Goal)[1]) %>% 
           mutate(measure = str_remove(measure, "[1-9]$")) %>% 
@@ -2268,7 +2275,7 @@ server <- function(session, input, output) {
             axis.ticks.y = element_blank(),
             legend.position = "none",
             plot.caption = element_text(hjust = 1),
-            strip.text = element_text(size = ifelse(nchar(SDGdata %>% 
+            strip.text = element_text(size = ifelse(nchar(SDGdata() %>% 
                                                             filter(Goal == input$SDGtarget)  %>% slice(1)%>% pull(Goal)) > 45, 10, 14 ))
           ) +
           #scale_x_continuous(limits = c(0,1), expand = c(0,0), labels = percent) +
