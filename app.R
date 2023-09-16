@@ -104,7 +104,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                 #tags$head(includeHTML(("google-analytics.html"))),
                 #tags$style(type="text/css", "body {padding-top: 70px;}"),
                 #navbarPage("קובץ רשויות מקומיות ונתוני אזורים סטטיסטיים", id = "NavBar", position = "fixed-top", selected = "נתוני 2021",
-                navbarPage("קובץ המחשת נתוני למ\"ס", id = "NavBar", position = "fixed-top", selected = "הקדמה",
+                navbarPage("קובץ המחשת נתוני למ\"ס", id = "NavBar", position = "static-top", selected = "הקדמה",
                            tabPanel("הקדמה",
                                     fluidPage(lang = "he",
                                               tags$style(
