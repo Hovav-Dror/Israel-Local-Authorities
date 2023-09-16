@@ -368,6 +368,25 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         ),
                                         # h3("שאר הבחירה היא מהטאב הקודם"),
                                         # h3("בדגש לתקנון לאוכלוסיה וכו"),
+                                        #  ____  pickerInput Cities to show ----
+                                        fluidRow(
+                                          #style = "display: flex; flex-direction: row; align-items: center; text-align: center;",
+                                          column(8, 
+                                                 tipify(
+                                                   pickerInput(inputId = "CitiesFocus0", label = "קפוץ לישובים:", 
+                                                               choices = Cities0,
+                                                               selected = NULL,
+                                                               options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                               multiple = TRUE
+                                                   ),
+                                                   "כשהבחירה כאן תשונה, המפה תוזז להכיל את הישובים הנבחרים"
+                                                 )),
+                                          column(2,
+                                                 tags$div(
+                                                   tags$label("Actions:", style="color: transparent"),    
+                                                   actionButton("updateB0", "Update"))
+                                          )
+                                        ),
                                       ), # end sidebarPanel
                                       mainPanel(
                                         #fluidRow(div(
@@ -740,7 +759,64 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                     hr(),
                                     p(), p(),
                                     
-                           ) # end tabPannel SDG targets
+                           ), # end tabPannel SDG targets
+                           # tabPanel מחיר דירות ----
+                           tabPanel("מחיר דירות",
+                                    hr(), h2("  "),
+                                    p(),p(),p(),p(),p(),p(),p(),p(),
+                                    h2("מחירי דירות במחוזות וישובים עיקריים"),
+                                    #h3("אזורים סטטיסטיים מכילים בדרך כלל מספר רחובות בתוך ישוב.    זמן הטעינה של המפה ואחר-כך של הופעת פוליגוני הצבע עליה, עשוי להיות ארוך"),
+                                    #h3("אזורים סטטיסטיים מכילים בדרך כלל מספר רחובות בתוך ישוב"),
+                                    actionButton("LoadApt1", label = HTML("<b><span style='font-size:18px;color:red'>Click to load data</span></b>")),
+                                    hr(),
+                                    sidebarLayout(
+                                      sidebarPanel(width = 2,
+                                                   radioGroupButtons(
+                                                     inputId = "RegionOrTown",
+                                                     label = NULL,
+                                                     choices = c("מחוזות", 
+                                                                 "ישובים"), 
+                                                     selected = "ישובים",
+                                                     justified = TRUE,status = "primary"
+                                                     
+                                                   ),
+                                                   radioGroupButtons(
+                                                     inputId = "PriceOrDeals",
+                                                     label = NULL,
+                                                     choices = c("מחיר דירה ממוצעת", 
+                                                                 "מספר עסקאות"),
+                                                     justified = TRUE,status = "primary"
+                                                     
+                                                   ),
+                                                   pickerInput("Rooms", "מספר חדרים", 
+                                                               choices = c("כל הדירות", "1-2", "2.5-3", "3.5-4", "4.5-5", "5.5-6"), 
+                                                               selected = "4.5-5", multiple = T,
+                                                               options = list(`live-search` = TRUE , `actions-box` = TRUE)),
+                                      ), # sidebarPanel
+                                      mainPanel(
+                                        div(
+                                          style = "display: flex; align-items: center; justify-content: center; padding-bottom: 450px; padding-top: 0px;",
+                                          uiOutput("AptPriceChange"),
+                                        ),
+                                        
+                                        p(), p(), p(),
+                                        HTML("<div class='rtl'><span class='formatted-text'>המקורות כאן הם נתונים מתוך <a href = 'https://www.cbs.gov.il/he/mediarelease/madad/Pages/2023/%D7%A9%D7%99%D7%A0%D7%95%D7%99-%D7%91%D7%9E%D7%97%D7%99%D7%A8%D7%99-%D7%A9%D7%95%D7%A7-%D7%94%D7%93%D7%99%D7%A8%D7%95%D7%AA-%D7%99%D7%95%D7%9C%D7%99-2023.aspx' target ='_blank'>הלמ\"ס - שינוי במחירי שוק הדירות</a></div>"),
+                                        HTML("<div class='rtl'><span class='formatted-text'> </div>"),
+                                        HTML("<div class='rtl'><span class='formatted-text'>הופתעתי לראות שבאשקלון יש יותר עסקאות מאשר בתל אביב. איך זה יתכן?</div>"),
+                                        HTML("<div class='rtl'><span class='formatted-text'>התשובה היא שככל שהדירה יקרה יותר, הסיכוי לעסקה קטן יותר. או אם תעדיפו - הזמן מקניה ועד למכירה של הדירה, גדול יותר.</div>"),
+                                        p(),p(),p(),
+                                        pickerInput("AptDealsYears", "שנה", 
+                                                    choices = 2019:2022, 
+                                                    selected = 2022
+                                        ),
+                                        div(
+                                          style = "display: flex; align-items: center; justify-content: center; padding-bottom: 450px; padding-top: 0px;",
+                                          uiOutput("DealsPerApt"),
+                                        ),
+                                        
+                                      ) # mainPanel
+                                    ) #sidebarLaout
+                           ), # end tabPanel מחיר דירות
                 ) # navbarPage
 ) # ui
 
@@ -2022,6 +2098,7 @@ server <- function(session, input, output) {
   # update CitiesFocus ----
   
   rv <- reactiveValues()
+  rv0 <- reactiveValues()
   
   observeEvent(input$updateB, {
     if(!is.null(input$CitiesFocus)){
@@ -2051,6 +2128,36 @@ server <- function(session, input, output) {
       #fitBounds(lng1 = 34.147, lat1 = 32.032, lng2 = 34.942, lat2 = 32.133)
       fitBounds(lng1 = NewBorders$xmin, lat1 = NewBorders$ymin, lng2 = NewBorders$xmax, lat2 = NewBorders$ymax)
   })
+  
+  observeEvent(input$updateB0, {
+    if(!is.null(input$CitiesFocus0)){
+      selected_options <- input$CitiesFocus0
+      # Reorder choices: selected ones on top, then the rest
+      choices <- c(selected_options, setdiff(Cities0, selected_options))
+      
+      # Update pickerInput with reordered choices
+      rv0$choices <- choices
+      rv0$selected <- selected_options
+      
+    }
+  })
+  
+  observeEvent(rv0$choices,{
+    updatePickerInput(session, "CitiesFocus0", choices = rv0$choices, selected = rv0$selected)
+    
+    NewBorders <- CitiesGeom() %>%
+      filter(SHEM_YISH %in% rv0$selected) %>% 
+      rowwise() %>%
+      mutate(xmin = st_bbox(geometry)[1], xmax = st_bbox(geometry)[3], ymin = st_bbox(geometry)[2], ymax = st_bbox(geometry)[4]) %>% 
+      select(xmin, xmax, ymin, ymax) %>% 
+      ungroup %>% 
+      summarise(xmin = min(xmin, na.rm = T), xmax = max(xmax, na.rm = T), ymin = min(ymin, na.rm = T), ymax = max(ymax, na.rm = T))
+    
+    leafletProxy("Map0", data =  Map0Data()) %>%
+      #fitBounds(lng1 = 34.147, lat1 = 32.032, lng2 = 34.942, lat2 = 32.133)
+      fitBounds(lng1 = NewBorders$xmin, lat1 = NewBorders$ymin, lng2 = NewBorders$xmax, lat2 = NewBorders$ymax)
+  })
+  
   
   # observe FilterByVar1 ----
   FilterByVar1rv <- reactiveValues(SelectedVarORG = "None", SelectedVar = "None", Range1 = c(-100000, 100000))
@@ -2293,6 +2400,140 @@ server <- function(session, input, output) {
       renderPlotly(p)
     } else {renderPlotly(ggplotly(eggplot())) }
   })
+  
+  # Apt1 מחירי דירות ----
+  Apt1loaded <- reactiveVal(FALSE)
+  AptData <- reactiveVal()
+  observeEvent(input$LoadApt1, {
+    if (input$LoadApt1 == 1) {
+      load("Apt1data.rda")
+      AptData(Apt)
+      updateButton(session, "LoadApt1", label = "Ready")
+      #updatePickerInput(session, "SDGtarget", choices = SDGdata() %>% distinct(Gn, Goal) %>% arrange(Gn) %>% pull(Goal))
+      Apt1loaded(TRUE)
+    }
+  })
+  
+  output$AptPriceChange <- renderUI({
+    
+    if (input$LoadApt1 >0) {
+      
+      Apt <- AptData()  
+      if (input$RegionOrTown == "מחוזות") {
+        Apt <- Apt %>% filter(PlaceType != "ישוב")
+      } else {
+        Apt <- Apt %>% filter(PlaceType == "ישוב")
+      }
+      
+      Apt <- Apt %>% pivot_wider(names_from = Type, values_from = value)
+      if (input$PriceOrDeals == "מחיר דירה ממוצעת") {
+        PoD = 1
+        Apt <- Apt %>% mutate(value = `מחיר\nממוצע` ) %>%  
+          mutate(value = value/1000, `מחיר\nממוצע` = `מחיר\nממוצע`/1000)
+        ylab = "מחיר דירה ממוצעת, מליוני שקלים"
+      } else {
+        PoD = 2
+        Apt <- Apt %>% mutate(value = `מספר\nעסקאות`) %>% 
+          mutate(`מחיר\nממוצע` = `מחיר\nממוצע`/1000)
+        ylab = "מספר עסקאות"
+      }
+      
+      Apt <- Apt %>% rename(
+        `מחיר ממוצע`  = `מחיר\nממוצע`,
+        `מספר עסקאות` = `מספר\nעסקאות`
+      )
+      
+      Apt <- Apt %>% left_join(
+        tibble(Rooms = c("כל הדירות", "1-2", "2.5-3", "3.5-4", "4.5-5", "5.5-6"), rooms = c("all", "1-2", "3-2.5", "4-3.5", "5-4.5", "6-5.5")) 
+        
+      )
+      Apt <- Apt %>% filter(Rooms %in% input$Rooms)
+      Apt <- Apt %>% mutate(Rooms = ifelse(Rooms == "כל הדירות", Rooms, paste0(" דירות ", Rooms, " חדרים ")))
+      
+      if (nrow(Apt) == 0) {p = eggplot()}  else {
+        p <- Apt %>% 
+          filter(Qt <12) %>%  # represent yearly average, and we'll use every quarter
+          mutate(date = ad(paste0(year, "-", 3*Qt-1, "-15"))) %>% 
+          mutate(text = paste0("<b>",town, "</b><br>", year, " ", Qt1, "<br>מחיר ממוצע: ", comma(`מחיר ממוצע`, 0.01), "  (מליוני שקלים) ",
+                               "<br>מספר עסקאות: ", comma(`מספר עסקאות`))) %>% 
+          eggplot(aes(x = date, y = value, color = town, text = text, group = town)) +
+          geom_point(size = 1) +
+          geom_line() +
+          geom_text(data = . %>% filter(date == max(date)) %>% mutate(value = value + 0.10), aes(label = town), size = 3) +
+          scale_color_viridis_d() +
+          scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.1))) +
+          labs(x = NULL, y = ylab, color = NULL) +
+          facet_wrap(~Rooms)
+        
+      }
+      
+      renderPlotly(plotly::ggplotly(p, tooltip = "text", height = 800, width = 1000, dynamicTicks = TRUE
+      ) %>% config(displayModeBar = FALSE))
+      
+      
+      
+    } else {renderPlotly(ggplotly(eggplot())) }
+    
+  })
+  
+  output$DealsPerApt <- renderUI({
+    
+    if (input$LoadApt1 >0) {
+      
+      Apt <- AptData()  
+      Apt <- Apt %>% filter(PlaceType == "ישוב")
+      Apt <- Apt %>% left_join(
+        tibble(Rooms = c("כל הדירות", "1-2", "2.5-3", "3.5-4", "4.5-5", "5.5-6"), rooms = c("all", "1-2", "3-2.5", "4-3.5", "5-4.5", "6-5.5")) 
+        
+      )
+      #Apt <- Apt %>% filter(Rooms %in% input$Rooms)
+      #Apt <- Apt %>% mutate(Rooms = ifelse(Rooms == "כל הדירות", Rooms, paste0(" דירות ", Rooms, " חדרים ")))
+      Apt <- Apt %>% filter(Rooms %in% "כל הדירות")
+      
+      p <- Apt %>% filter(year == input$AptDealsYears, Qt == 12, PlaceType != "All", PlaceType != "מחוז") %>% 
+        pivot_wider(names_from = Type, values_from = value) %>% rename(Deals = 9, Price = 10) %>% 
+        left_join(
+          Pop_and_Physical2021 %>% select(1, `בנייה ודיור: מספר דירות למגורים לפי מרשם מבנים ודירות`) %>% rename(town = 1, apts = 2) %>% 
+            mutate(town = case_when(str_detect(town, "אביב") ~ "תל אביב", 
+                                    str_detect(town, "פתח תקווה") ~ "פתח תקוה", 
+                                    TRUE ~ town))
+        ) %>% 
+        mutate(P_Deals = Deals / apts) %>% 
+        mutate(Price = Price / 1000) %>% 
+        mutate(text = paste0(
+          "<br><b>", town, "</b>",
+          "<br>מספר עסקאות: ", comma(Deals),
+          "<br>מספר דירות בישוב: ", comma(apts),
+          "<br>אחוז הדירות שנמכרו: ", percent(P_Deals, 0.1)
+        )) %>% 
+        eggplot(aes(x = Price, y = P_Deals, text = text)) + 
+        geom_point() + 
+        geom_text(data = . %>% mutate(P_Deals = P_Deals + 0.001), aes(label = town)) +
+        facet_wrap(~Rooms, scales = "free") +
+        scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.1)), labels = percent) +
+        scale_x_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.1))) +
+        theme(plot.caption = element_text(hjust = 1)) +
+        labs(
+          title = "בערים יקרות - דירה מוחזקת יותר זמן עד מכירה",
+          x = ("מחיר דירה ממוצעת\n(במיליוני שקלים)"),
+          y = paste0("אחוז הדירות בישוב שנמכרו ב־", input$AptDealsYears) ,
+          caption = (glue::glue("
+    בשנת {input$AptDealsYears}
+    מחיר הדירות ומספר הדירות שנמכרו לפי פרסום שינוי במחירי שוק הדירות - יולי 2023 של הלמ\"ס
+    מספר הדירות בישוב לפי קובץ הרשויות המקומיות בישראל - 2021 של הלמ\"ס
+                               "))
+        )
+      
+      renderPlotly(plotly::ggplotly(p, tooltip = "text", height = 800, width = 1000, dynamicTicks = TRUE
+      ) %>% 
+        layout(yaxis = list(tickformat = ".0%"), margin = list(l = 50)) %>% 
+        config(displayModeBar = FALSE))
+      
+    } else {renderPlotly(ggplotly(eggplot())) }
+    
+  }) # DealsPerApt
+  
+  
   
 } # server
 
