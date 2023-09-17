@@ -2295,8 +2295,9 @@ server <- function(session, input, output) {
           group_by(target) %>% 
           mutate(n2 = n / sum(n)) %>% 
           mutate(n3 = paste(paste0(achieved2, ": ", n, " (",percent(n2,1),")"), collapse = "<br>")) %>% 
+          mutate(target2 = case_when(nchar(target) < 120 ~ target, TRUE ~ paste0(substr(target, 1, 120), "<br>",substr(target, 121, nchar(target))))) %>% 
           eggplot(aes(x = n2, y = reorder((target), -Gn), fill = fill1, 
-                      text = paste0(G3, "<br><br>", n3))) +
+                      text = paste0(G3, "<br><br>", n3, "<br>", target2))) +
           geom_col() +
           geom_text(data = . %>% group_by((target)) %>% ungroup %>% mutate(n2 = 0.5), 
                     aes(label = (target)), color = "white", hjust = 1, size = 4) +
