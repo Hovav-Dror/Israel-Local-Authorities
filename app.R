@@ -518,8 +518,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(2),
                                         column(2,
                                                pickerInput(inputId = "TopicsB", label = "סינון נושאים", 
-                                                           choices = names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
-                                                           selected =names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
+                                                           choices = names3_all %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
+                                                           selected =names3_all %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
                                                            #selected = c("דמוגרפיה", "בריאות", "חינוך והשכלה", "מדד חברתי-כלכלי", "מתוך סקר הוצאות  משקי הבית" , "מתוך סקר כוח אדם", "שכר ורווחה", "תחבורה"),
                                                            options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
                                                            multiple = TRUE
@@ -1122,7 +1122,7 @@ server <- function(session, input, output) {
         labs(
           #x = names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
           y = NULL,
-          x = names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
+          x = names3_all %>% filter(year == input$Year1, N3 == input$yaxis1) %>% pull(N4),
           color = NULL, fill = NULL
         ) 
     }  else if (input$BarPlot == "Group") { # do a bar plot 
@@ -1996,7 +1996,7 @@ server <- function(session, input, output) {
         )
       }
       
-      YLAB = paste0(names3 %>% filter(N3 == input$yaxis01) %>% pull(N4),
+      YLAB = paste0(names3_all %>% filter(year == 2022, N3 == input$yaxis01) %>% pull(N4),
                     ifelse((input$AdjustPopBy0 != "ללא תקנון") & !str_detect(input$yaxis01, "מתוקנן") & !str_detect(input$yaxis01, "אחוז")& !str_detect(input$yaxis01, "ל-1000"),
                            paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
       # XLAB = paste0(names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
