@@ -356,7 +356,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                           "האזורים הסטטיסטיים יצבעו לפי ערך הבחירה כאן"
                                         ),
                                         pickerInput(inputId = "AdjustPopBy0", label = "בתקנון לאוכלוסיה", 
-                                                    choices = c("ללא תקנון", Names1[str_detect(Names1, "ייה בסוף השנה")]),
+                                                    choices = PosColumns22[str_detect(PosColumns22, "ייה בסוף השנה") & !str_detect(PosColumns22, "תקציב")][c(12, 5, 2, 11, 1, 3, 4, 6, 7, 8, 14, 9, 10, 13)],
+                                                    #selected = PosColumns22[str_detect(PosColumns22, "ייה בסוף השנה")][12],
                                                     #selected = Names1[str_detect(Names1, "ייה בסוף השנה")][1],
                                                     selected = "ללא תקנון",
                                                     #options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
@@ -565,8 +566,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         ),
                                         column(2,
                                                pickerInput(inputId = "AdjustPopByB", label = "בתקנון לאוכלוסיה", 
-                                                           choices = Names1[str_detect(Names1, "ייה בסוף השנה")],
-                                                           selected = Names1[str_detect(Names1, "ייה בסוף השנה")][1],
+                                                           choices = PosColumns22[str_detect(PosColumns22, "ייה בסוף השנה") & !str_detect(PosColumns22, "תקציב")][c(12, 5, 2, 11, 1, 3, 4, 6, 7, 8, 14, 9, 10, 13)],
+                                                           selected = PosColumns22[str_detect(PosColumns22, "ייה בסוף השנה")][12],
                                                            #options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
                                                            multiple = FALSE
                                                )),
@@ -1309,7 +1310,7 @@ server <- function(session, input, output) {
     } else {
       Metuknan = paste0(
         " (מתוקנן לאוכלוסיית ",
-        Names1[str_detect(Names1, input$AdjustPopBy)] %>% str_extract("בני.*"),
+        PosColumns22[str_detect(PosColumns22, input$AdjustPopBy)] %>% str_extract("בני.*"),
         ")"
       )
     }
@@ -1337,7 +1338,7 @@ server <- function(session, input, output) {
     } else {
       Metuknan = paste0(
         " (מתוקנן לאוכלוסיית ",
-        Names1[str_detect(Names1, input$AdjustPopByB)] %>% str_extract("בני.*"),
+        PosColumns22[str_detect(PosColumns22, input$AdjustPopByB)] %>% str_extract("בני.*"),
         ")"
       )
     }
@@ -1349,10 +1350,11 @@ server <- function(session, input, output) {
     XLAB = paste0(names3_all %>% filter(N3 == input$xaxis1) %>% slice(1) %>% pull(N4),
                   ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז")& !str_detect(input$xaxis1, "ל-1000"),
                          paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
+    machozTownsB <- Pop_and_Physical2022 %>% filter(`כללי: מחוז` %in% input$MachozB) %>% pull(`שם הרשות`)
     
     db <- Combined %>% 
       filter(`שם הרשות` %in% input$townsB) %>% 
-      filter(`כללי: מחוז` %in% input$Machoz) %>%
+      filter(`שם הרשות` %in% machozTownsB) %>% 
       group_by(`שם הרשות`) %>% 
       filter(any(name == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" & value >= input$TownSizeSliderB[1] & value <= input$TownSizeSliderB[2])) %>% 
       #filter(any(name == input$AdjustPopByB )) %>% 
@@ -1693,7 +1695,7 @@ server <- function(session, input, output) {
     } else {
       Metuknan = paste0(
         " (מתוקנן לאוכלוסיית ",
-        Names1[str_detect(Names1, input$AdjustPopByB)] %>% str_extract("בני.*"),
+        PosColumns22[str_detect(PosColumns22, input$AdjustPopByB)] %>% str_extract("בני.*"),
         ")"
       )
     }
@@ -1893,7 +1895,7 @@ server <- function(session, input, output) {
     } else {
       Metuknan = paste0(
         " (מתוקנן לאוכלוסיית ",
-        Names1[str_detect(Names1, input$AdjustPopBy0)] %>% str_extract("בני.*"),
+        PosColumns22[str_detect(PosColumns22, input$AdjustPopBy0)] %>% str_extract("בני.*"),
         ")"
       )
     }
@@ -1989,7 +1991,7 @@ server <- function(session, input, output) {
       } else {
         Metuknan = paste0(
           " (מתוקנן לאוכלוסיית ",
-          Names1[str_detect(Names1, input$AdjustPopBy0)] %>% str_extract("בני.*"),
+          PosColumns22[str_detect(PosColumns22, input$AdjustPopBy0)] %>% str_extract("בני.*"),
           ")"
         )
       }
