@@ -15,74 +15,92 @@ if (file.exists('/srv/shiny-server/Invest/HelperFunctions.R')) {
 } else {library(HovavLoadPackage5)}
 
 load("StatAreas.rda")
-load("MunicipalData.rda")
+load("MunicipalData22.rda")
 
+NotNumeric = c("שם הרשות", "כללי: סמל הרשות", "כללי: מחוז", "כללי: מעמד מוניציפלי")
+PosColumns22 = names3_all %>% 
+  filter(year == 2022) %>% 
+  filter(!N3 %in% NotNumeric) %>%
+  pull(N3)
 
+AllNumeric <- names3_all %>% 
+  filter(!N3 %in% NotNumeric) %>%
+  group_by(N3) %>% 
+  slice(1) %>% 
+  ungroup %>% 
+  pull(N3)
 
-
-Pop_and_Physical2021 <- Pop_and_Physical2021 %>% select(-"כללי: שם ועדת תכנון ובנייה")
-Pop_and_Physical2021 <- Pop_and_Physical2021 %>% 
-  mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-         .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-  mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
-  relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-  mutate(`דמוגרפיה: הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-         `דמוגרפיה: הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`)
-Names1 <- names(Pop_and_Physical2021)
 suppressWarnings(
   Combined <- bind_rows(
+    Pop_and_Physical2022 %>% 
+      mutate(across(-`שם הרשות`, as.numeric)) %>% 
+      pivot_longer(-`שם הרשות`) %>% 
+      mutate(Year = 2022) %>% 
+      drop_na(),
     Pop_and_Physical2021 %>% 
       mutate(across(-`שם הרשות`, as.numeric)) %>% 
       pivot_longer(-`שם הרשות`) %>% 
       mutate(Year = 2021) %>% 
       drop_na(),
     Pop_and_Physical2020 %>% 
-      select(any_of(Names1)) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
-      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      #select(any_of(Names1)) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+      #        .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
+      # relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      # mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+      #        `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
       mutate(across(-`שם הרשות`, as.numeric)) %>% 
       pivot_longer(-`שם הרשות`) %>% 
       mutate(Year = 2020) %>% 
       drop_na(),
     Pop_and_Physical2019 %>% 
-      select(any_of(Names1)) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      #select(any_of(Names1)) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+      #        .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      # relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      # mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+      #        `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
       mutate(across(-`שם הרשות`, as.numeric)) %>% 
       pivot_longer(-`שם הרשות`) %>% 
       mutate(Year = 2019) %>% 
       drop_na(),
     Pop_and_Physical2018 %>% 
-      select(any_of(Names1)) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      #select(any_of(Names1)) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+      #        .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      # relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      # mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+      #        `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
       mutate(across(-`שם הרשות`, as.numeric)) %>% 
       pivot_longer(-`שם הרשות`) %>% 
       mutate(Year = 2018) %>% 
       drop_na(),
     Pop_and_Physical2017 %>% 
-      select(any_of(Names1)) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
-             .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
-      mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
-      relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
-      mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
-             `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      #select(any_of(Names1)) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+      #        .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
+      # relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      # mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+      #        `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
       mutate(across(-`שם הרשות`, as.numeric)) %>% 
       pivot_longer(-`שם הרשות`) %>% 
       mutate(Year = 2017) %>% 
+      drop_na(),
+    Pop_and_Physical2016 %>% 
+      #select(any_of(Names1)) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-20` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 29-20` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 44-30` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`,
+      #        .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 17-0`) %>% 
+      # mutate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 45 ומעלה` = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 59-45` + `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 64-60`, .before = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>%
+      # relocate(`דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 75 ומעלה`, .after = `דמוגרפיה: אחוז באוכלוסייה בסוף השנה בני 65 ומעלה`) %>% 
+      # # mutate(`הדגשת דתיים וערבים` = `דמוגרפיה: אחוז הצבעה למפלגות דתיות, בחירות לכנסת 25` - `דמוגרפיה: ערבים (אחוזים)`,
+      # #        `הדגשת חרדים וערבים` = `דמוגרפיה: אחוז חרדים` - `דמוגרפיה: ערבים (אחוזים)`, .after = `דמוגרפיה: אחוז חרדים`) %>% 
+      mutate(across(-`שם הרשות`, as.numeric)) %>% 
+      pivot_longer(-`שם הרשות`) %>% 
+      mutate(Year = 2016) %>% 
       drop_na(),
   )
 )
@@ -135,7 +153,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                               p(), p(), p(), p(),
                                               hr(),
                                               HTML(" <br>"),
-                                              HTML("<div class='rtl'><span class='emphasis'>קובץ הרשויות המקומיות בישראל - 2021</div>"),
+                                              HTML("<div class='rtl'><span class='emphasis'>קובץ הרשויות המקומיות בישראל - 2022</div>"),
                                               p(), p(),
                                               HTML("<div class='rtl'><span class='formatted-text'>הלמ\"ס <a href = 'https://www.cbs.gov.il/he/mediarelease/Pages/2023/%D7%A7%D7%95%D7%91%D7%A5-%D7%94%D7%A8%D7%A9%D7%95%D7%99%D7%95%D7%AA-%D7%94%D7%9E%D7%A7%D7%95%D7%9E%D7%99%D7%95%D7%AA-%D7%91%D7%99%D7%A9%D7%A8%D7%90%D7%9C-2021.aspx'  target='_blank'>פרסמו את קובץ הרשויות המקומיות</a> ויש בו המון מידע.</div>"),
                                               HTML("<div class='rtl'><span class='formatted-text'>הכנתי לעצמי משהו שמקל מעט על בחינת חלק מהנתונים שניתן למצוא שם. אז אשתף גם אתכם, אם אתם מחסידי הז'אנר.</div>"),
@@ -158,7 +176,7 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                            ),
                            
                            # tabPanel גרף ------------------------------------------------------------
-                           tabPanel("רשויות - נתוני 2021",
+                           tabPanel("רשויות - נתוני 2022",
                                     
                                     fluidPage(
                                       hr(),
@@ -171,21 +189,13 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       hr(),
                                       fluidRow(
                                         column(1),
-                                        column(2, pickerInput("xaxis1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "שכר ורווחה: אחוז העצמאים המשתכרים עד מחצית השכר הממוצע"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("xaxis1", "x-axis", choices = PosColumns22, selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות שעמדו בדרישות הסף של האוניברסיטאות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
                                         column(1, tipify(checkboxInput(inputId = "PopAdjustX", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         column(1),
-                                        column(2, pickerInput("yaxis1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("yaxis1", "y-axis", choices = PosColumns22, selected = "שכר: נשים שכר ממוצע"  , options = pickerOptions(liveSearch = T))),
                                         column(1, tipify(checkboxInput(inputId = "PopAdjustY", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
                                         column(2,
-                                               # tipify(
-                                               #   materialSwitch(
-                                               #   inputId = "BarPlot",
-                                               #   label = "מיפוי משתנה בודד",
-                                               #   value = FALSE,
-                                               #   status = "primary"
-                                               # ),
-                                               # "בלבד Y גרף עמודות, המשתמש בציר"),
                                                tipify(
                                                  radioGroupButtons(
                                                    inputId = "BarPlot",
@@ -205,10 +215,12 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       ), # fluidRow
                                       fluidRow(
                                         column(1),
-                                        column(2, pickerInput("size1", "Size", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"
+                                        column(2, pickerInput("size1", "Size", choices = c("none", PosColumns22), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"
                                                               , options = pickerOptions(liveSearch = T))),
                                         column(2),
-                                        column(2, pickerInput("color1", "Color", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "none" , options = pickerOptions(liveSearch = T) )),
+                                        column(2, pickerInput("color1", "Color", choices = c("none", PosColumns22), selected = "none" , options = pickerOptions(liveSearch = T) )),
+                                        column(1),
+                                        column(1, pickerInput("Year1", "Year", choices = 2022:2016, selected = 2022 , options = pickerOptions(liveSearch = T) )),
                                       ),
                                       #p(),p(),
                                       #fluidRow(uiOutput("Comments1")),
@@ -246,8 +258,8 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         column(2),
                                         column(2,
                                                pickerInput(inputId = "Topics", label = "סינון נושאים", 
-                                                           choices = names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
-                                                           selected =names3 %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
+                                                           choices = names3_all %>% filter(year == 2022) %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
+                                                           selected = names3_all %>% filter(year == 2022) %>% select(N3) %>% mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% filter(NN!="שם הרשות") %>% pull(NN),
                                                            #selected = c("דמוגרפיה", "בריאות", "חינוך והשכלה", "מדד חברתי-כלכלי", "מתוך סקר הוצאות  משקי הבית" , "מתוך סקר כוח אדם", "שכר ורווחה", "תחבורה"),
                                                            options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
                                                            multiple = TRUE
@@ -255,14 +267,14 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                         #column(1),
                                         column(2,
                                                pickerInput(inputId = "towns", label = "סינון ישובים", 
-                                                           choices = Pop_and_Physical2021 %>% pull(1),
-                                                           selected = Pop_and_Physical2021 %>% pull(1),
+                                                           choices = Pop_and_Physical2022 %>% pull(1),
+                                                           selected = Pop_and_Physical2022 %>% pull(1),
                                                            options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
                                                            multiple = TRUE
                                                )),
                                         column(2,
                                                pickerInput(inputId = "HighlightTowns", label = "ישובים להבליט בכתום", 
-                                                           choices = Pop_and_Physical2021 %>% pull(1),
+                                                           choices = Pop_and_Physical2022 %>% pull(1),
                                                            selected = NULL,
                                                            options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
                                                            multiple = TRUE
@@ -271,10 +283,6 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       fluidRow(
                                         column(2),
                                         column(2,
-                                               # sliderInput(inputId = "TownSizeSlider", label = "מספר תושבים בישוב", 
-                                               #             min = min(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), max = max(Pop_and_Physical2021$`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`, na.rm = T), 
-                                               #             value = c(1000, 1000000), log = TRUE,
-                                               # )
                                                sliderTextInput(
                                                  inputId = "TownSizeSlider",
                                                  label = "מספר תושבים בישוב", 
@@ -282,11 +290,20 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                  grid = TRUE,selected = c(1000, 1000000), 
                                                )
                                         ),
-                                        column(2),
+                                        column(2,
+                                               pickerInput(
+                                                 inputId = "Machoz",
+                                                 label = "מחוז", 
+                                                 choices = unique(Pop_and_Physical2022$`כללי: מחוז`),
+                                                 selected = unique(Pop_and_Physical2022$`כללי: מחוז`),
+                                                 options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                 multiple = TRUE
+                                               )
+                                        ),
                                         column(2,
                                                pickerInput(inputId = "AdjustPopBy", label = "בתקנון לאוכלוסיה", 
-                                                           choices = Names1[str_detect(Names1, "ייה בסוף השנה")],
-                                                           selected = Names1[str_detect(Names1, "ייה בסוף השנה")][1],
+                                                           choices = PosColumns22[str_detect(PosColumns22, "ייה בסוף השנה") & !str_detect(PosColumns22, "תקציב")][c(12, 5, 2, 11, 1, 3, 4, 6, 7, 8, 14, 9, 10, 13)],
+                                                           selected = PosColumns22[str_detect(PosColumns22, "ייה בסוף השנה")][12],
                                                            #options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
                                                            multiple = FALSE
                                                )),
@@ -416,10 +433,10 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       hr(),
                                       fluidRow(
                                         column(1),
-                                        column(2, pickerInput("xaxisB1", "x-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "שכר ורווחה: אחוז העצמאים המשתכרים עד מחצית השכר הממוצע"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("xaxisB1", "x-axis", choices = AllNumeric, selected = "שכר ורווחה: אחוז העצמאים המשתכרים עד מחצית השכר הממוצע"  , options = pickerOptions(liveSearch = T))),
                                         column(1, tipify(checkboxInput(inputId = "PopAdjustBX", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         column(1),
-                                        column(2, pickerInput("yaxisB1", "y-axis", choices = names(Pop_and_Physical2021 %>% select_if(is.numeric)), selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
+                                        column(2, pickerInput("yaxisB1", "y-axis", choices = AllNumeric, selected = "חינוך והשכלה: אחוז זכאים לתעודת בגרות מבין תלמידי כיתות יב"  , options = pickerOptions(liveSearch = T))),
                                         column(1, tipify(checkboxInput(inputId = "PopAdjustBY", label = "תקנון לאוכלוסיה", value = FALSE), "תקנון ל 1000 אנשים")),
                                         #column(2, pickerInput("y-axis", "yaxis1", choices = names(Pop_and_Physical2021), selected = " צפיפות_אוכלוסייה_לקמר_ביישובים_שמנו_5_000_תושבים_ויותר"  )),
                                         column(2,
@@ -452,10 +469,10 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                       ), # fluidRow
                                       fluidRow(
                                         column(1),
-                                        column(2, pickerInput("sizeB1", "Size", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"
+                                        column(2, pickerInput("sizeB1", "Size", choices = c("none", AllNumeric), selected = "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה"
                                                               , options = pickerOptions(liveSearch = T))),
                                         column(2),
-                                        column(2, pickerInput("colorB1", "Color", choices = c("none", names(Pop_and_Physical2021 %>% select_if(is.numeric))), selected = "none" , options = pickerOptions(liveSearch = T) )),
+                                        column(2, pickerInput("colorB1", "Color", choices = c("none", AllNumeric), selected = "none" , options = pickerOptions(liveSearch = T) )),
                                       ),
                                       #p(),p(),
                                       #fluidRow(uiOutput("Comments1")),
@@ -536,7 +553,16 @@ ui <- fluidPage(theme = shinytheme("cerulean"),
                                                  grid = TRUE,selected = c(1000, 1000000), 
                                                )
                                         ),
-                                        column(2),
+                                        column(2,
+                                               pickerInput(
+                                                 inputId = "MachozB",
+                                                 label = "מחוז", 
+                                                 choices = unique(Pop_and_Physical2022$`כללי: מחוז`),
+                                                 selected = unique(Pop_and_Physical2022$`כללי: מחוז`),
+                                                 options = list(`live-search` = TRUE , `actions-box` = TRUE, `size` = 10 ),
+                                                 multiple = TRUE
+                                               )
+                                        ),
                                         column(2,
                                                pickerInput(inputId = "AdjustPopByB", label = "בתקנון לאוכלוסיה", 
                                                            choices = Names1[str_detect(Names1, "ייה בסוף השנה")],
@@ -832,12 +858,42 @@ server <- function(session, input, output) {
   
   
   # observeEvent info$Topics ------------------------------------------------
-  observeEvent(input$Topics, {
+  observeEvent(input$Year1, {
+    
+    SelectedTopics = input$Topics
+    
+    PossibleTopics = names3_all %>% 
+      filter(year == input$Year1) %>%
+      select(N3) %>% 
+      mutate(NN = str_extract(N3, "([^:]+)")) %>% distinct(NN) %>% arrange(NN) %>% 
+      filter(NN!="שם הרשות") %>% pull(NN)
+    NotNumeric = c("שם הרשות", "כללי: סמל הרשות", "כללי: מחוז", "כללי: מעמד מוניציפלי")
+    PossibleTopics = PossibleTopics[!PossibleTopics %in% NotNumeric]
+    
+    SelectedTopics <- SelectedTopics[SelectedTopics %in% PossibleTopics]
+    
+    updatePickerInput(session, "Topics", 
+                      choices = PossibleTopics,
+                      #selected =SelectedTopics
+                      selected = PossibleTopics
+    )
+  }) # observeEvent info$Year1
+  
+  observeEvent(c(input$Topics), {
+    
+    PossibleColumns <- names3_all %>% filter(year == input$Year1) %>% pull(N3)
+    
+    
+    NotNumeric = c("שם הרשות", "כללי: סמל הרשות", "כללי: מחוז", "כללי: מעמד מוניציפלי")
+    PossibleColumns = PossibleColumns[!PossibleColumns %in% NotNumeric]
+    PossibleColumns = PossibleColumns %>% as_tibble() %>% filter(str_detect(value, paste(input$Topics, collapse = "|"))) %>% pull(value)
+    #PossibleColumns = c("none", PossibleColumns)
     
     xSelected <- input$xaxis1
-    xNewOptions <- Pop_and_Physical2021 %>% select( matches(paste(input$Topics, collapse = "|"))) %>% select_if(is.numeric) %>% names()
-    if ("פסולת מוצקה ביתית, מסחרית וגזם (ק\"ג ליום לנפש)" %in% input$Topics) {xNewOptions = c(xNewOptions, Pop_and_Physical2021 %>% select(contains("פסולת מוצקה")) %>% names)}
-    if ("פשיעה ומשפט (ברשויות המונות 50,000 תושבים ויותר)" %in% input$Topics) {xNewOptions = c(xNewOptions, Pop_and_Physical2021 %>% select(contains("פשיעה ומשפט")) %>% names)}
+    #xNewOptions <- db %>% select( matches(paste(input$Topics, collapse = "|"))) %>% select_if(is.numeric) %>% names()
+    xNewOptions <- PossibleColumns
+    #if ("פסולת מוצקה ביתית, מסחרית וגזם (ק\"ג ליום לנפש)" %in% input$Topics) {xNewOptions = c(xNewOptions, Pop_and_Physical2021 %>% select(contains("פסולת מוצקה")) %>% names)}
+    #if ("פשיעה ומשפט (ברשויות המונות 50,000 תושבים ויותר)" %in% input$Topics) {xNewOptions = c(xNewOptions, Pop_and_Physical2021 %>% select(contains("פשיעה ומשפט")) %>% names)}
     if (!(xSelected %in% xNewOptions | xSelected == "none")) {xSelected <- xNewOptions[1]}
     updatePickerInput(session, "xaxis1", 
                       choices = xNewOptions,
@@ -882,20 +938,37 @@ server <- function(session, input, output) {
     } else {
       Metuknan = paste0(
         " (מתוקנן לאוכלוסיית ",
-        Names1[str_detect(Names1, input$AdjustPopBy)] %>% str_extract("בני.*"),
+        PosColumns22[str_detect(PosColumns22, input$AdjustPopBy)] %>% str_extract("בני.*"),
         ")"
       )
     }
     
-    YLAB = paste0(names3 %>% filter(N3 == input$yaxis1) %>% pull(N4),
+    YLAB = paste0(names3_all %>% filter(year == input$Year1, N3 == input$yaxis1) %>% pull(N4),
                   ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"),
                          paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
-    XLAB = paste0(names3 %>% filter(N3 == input$xaxis1) %>% pull(N4),
+    XLAB = paste0(names3_all %>% filter(year == input$Year1, N3 == input$xaxis1) %>% pull(N4),
                   ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז")& !str_detect(input$xaxis1, "ל-1000"),
                          paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
+    TITLE = paste0(
+      str_replace(input$yaxis1, ".*\\: ", ""),
+      ", כנגד\n",
+      str_replace(input$xaxis1, ".*\\: ", "")
+    )
     
-    db <- Pop_and_Physical2021 %>% 
+    if (input$Year1 == "2022") {db <- Pop_and_Physical2022}
+    if (input$Year1 == "2021") {db <- Pop_and_Physical2021}
+    if (input$Year1 == "2020") {db <- Pop_and_Physical2020}
+    if (input$Year1 == "2019") {db <- Pop_and_Physical2019}
+    if (input$Year1 == "2018") {db <- Pop_and_Physical2018}
+    if (input$Year1 == "2017") {db <- Pop_and_Physical2017}
+    if (input$Year1 == "2016") {
+      db <- Pop_and_Physical2016
+    }
+    
+    
+    db <- db %>% 
       filter(`שם הרשות` %in% input$towns) %>% 
+      filter(`כללי: מחוז` %in% input$Machoz) %>%
       filter(`דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`>= as.numeric(input$TownSizeSlider[1]), `דמוגרפיה: סה"כ אוכלוסייה בסוף השנה`<= as.numeric(input$TownSizeSlider[2])) %>% 
       filter( `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` >= input$Eshkol[1],  `מדד חברתי-כלכלי: אשכול (מ-1 עד 10, 1 הנמוך ביותר)` <= input$Eshkol[2]) %>% 
       filter(`דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` >= input$Coalition[1], `דמוגרפיה: אחוז הצבעה למפלגות הקואליציה, בחירות לכנסת 25` <= input$Coalition[2]) %>% 
@@ -1002,9 +1075,9 @@ server <- function(session, input, output) {
       p <- p +
         labs(
           x = XLAB,
-          #y = YLAB,
-          y = NULL,
-          title = YLAB,
+          y = YLAB,
+          #y = NULL,
+          title = TITLE,
           color = NULL
         ) +
         theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 18))
@@ -1206,7 +1279,9 @@ server <- function(session, input, output) {
       Comments1label <- paste0(Comments1label, "<br>נתוני סקר הוצאות משקי הבית קיימים עבור ערים המונות 50,000 תושבים ויותר<br>")
     }
     
-    
+    if (input$Year1 != 2021) {
+      Comments1r <- Comments2022 %>% rename(character = Column)
+    }
     c1 <- Comments1r %>% mutate(Yeap = str_detect(str_replace_all(input$xaxis1, "\\(|\\)", ""), str_trim(str_replace_all(character, "\\(|\\)", "")))) %>% filter(Yeap) %>% #slice(1) %>% 
       pull(comment)
     if (length(c1)>0) {Comments1label <- paste0(Comments1label, "<br>", input$xaxis1, ": <b><br>", c1, "</b><br>") }
@@ -1268,15 +1343,16 @@ server <- function(session, input, output) {
     }
     
     
-    YLAB = paste0(names3 %>% filter(N3 == input$yaxisB1) %>% pull(N4),
-                  ifelse(input$PopAdjustBY & !str_detect(input$yaxisB1, "מתוקנן") & !str_detect(input$yaxisB1, "אחוז")& !str_detect(input$yaxisB1, "ל-1000"),
+    YLAB = paste0(names3_all %>% filter(N3 == input$yaxis1) %>% slice(1) %>% pull(N4),
+                  ifelse(input$PopAdjustY & !str_detect(input$yaxis1, "מתוקנן") & !str_detect(input$yaxis1, "אחוז")& !str_detect(input$yaxis1, "ל-1000"),
                          paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
-    XLAB = paste0(names3 %>% filter(N3 == input$xaxisB1) %>% pull(N4),
-                  ifelse(input$PopAdjustBX & !str_detect(input$xaxisB1, "מתוקנן") & !str_detect(input$xaxisB1, "אחוז")& !str_detect(input$xaxisB1, "ל-1000"),
+    XLAB = paste0(names3_all %>% filter(N3 == input$xaxis1) %>% slice(1) %>% pull(N4),
+                  ifelse(input$PopAdjustX & !str_detect(input$xaxis1, "מתוקנן") & !str_detect(input$xaxis1, "אחוז")& !str_detect(input$xaxis1, "ל-1000"),
                          paste0("<br>", Metuknan), "")) %>% str_replace("<br><br>", "<br>")
     
     db <- Combined %>% 
       filter(`שם הרשות` %in% input$townsB) %>% 
+      filter(`כללי: מחוז` %in% input$Machoz) %>%
       group_by(`שם הרשות`) %>% 
       filter(any(name == "דמוגרפיה: סה\"כ אוכלוסייה בסוף השנה" & value >= input$TownSizeSliderB[1] & value <= input$TownSizeSliderB[2])) %>% 
       #filter(any(name == input$AdjustPopByB )) %>% 
@@ -1505,8 +1581,8 @@ server <- function(session, input, output) {
           #   xshift = 0,  # Horizontal shift (in pixels)
           #   yshift = 0  # Vertical shift (in pixels)
           # ) %>%
-        # layout(margin = list(l = 150)) %>%
-        layout(legend = list(traceorder = "reversed", showlegend = TRUE), xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20, color = "white"))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
+          # layout(margin = list(l = 150)) %>%
+          layout(legend = list(traceorder = "reversed", showlegend = TRUE), xaxis = list(title = list(text = YLAB, font = list(weight = "bold", size = 20, color = "white"))), yaxis = list(title = ''), width = 1000, height = 600) %>% 
           config(displayModeBar = FALSE)
       } else if (input$BarPlotB == "Group") { # Group
         
